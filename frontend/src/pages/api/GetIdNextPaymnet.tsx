@@ -110,6 +110,7 @@ const GetIdNextPaymnet: React.FC = () => {
   //
 
   const name = getPosDetail?.witholdings?.[0]?.name
+  const totalAwal = getPosDetail?.amount
   const whPersen = getPosDetail?.witholdings?.[0]?.witholding_percent
   const whAmount = getPosDetail?.witholdings?.[0]?.witholding_amount
   const idMonggo =
@@ -144,10 +145,10 @@ const GetIdNextPaymnet: React.FC = () => {
     }
 
     const invoiceId = tetapkanIdYangii
-    const totalAmount = selectedData.amount
-    console.log({ totalAmount })
+    const jumlahBayar = selectedData.amount
+    console.log({ jumlahBayar })
     const due = selectedData.due
-    console.log({ totalAmount })
+    console.log({ jumlahBayar })
 
     const idPadaItems =
       selectedData.items?.map((item: any) => ({
@@ -160,7 +161,7 @@ const GetIdNextPaymnet: React.FC = () => {
 
     const idPadaWitholdings =
       getPosDetail?.witholdings?.map((item: any) => ({
-        down_payment: amount, // Contoh nilai down_payment
+        down_payment: jumlahBayar, // Contoh nilai down_payment
         status: 0,
         id: idUnique,
         witholding_account_id: idBank,
@@ -177,7 +178,7 @@ const GetIdNextPaymnet: React.FC = () => {
         id: invoiceId as any,
         items: idPadaItems,
         witholdings: idPadaWitholdings,
-        amount: totalAmount,
+        amount: totalAwal,
         due: due,
       })
 
