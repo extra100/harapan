@@ -83,7 +83,9 @@ const GetIdNextPaymnet: React.FC = () => {
     (transaction: any) => transaction.memo === search
   )
   const tetapkanIdYangii = getPosDetail?.id || 0
-  console.log({ tetapkanIdYangii })
+  const jumlahBayarWakanda = getPosDetail?.down_payment || 0
+  console.log({ jumlahBayarWakanda })
+  console.log({ getPosDetail })
   const idBank = getPosDetail?.witholdings?.[0]?.witholding_account_id
   // const idUnique = selectedData?.id || 0
 
@@ -161,7 +163,7 @@ const GetIdNextPaymnet: React.FC = () => {
 
     const idPadaWitholdings =
       getPosDetail?.witholdings?.map((item: any) => ({
-        down_payment: jumlahBayar, // Contoh nilai down_payment
+        // down_payment: jumlahBayar, // Contoh nilai down_payment
         status: 0,
         id: idUnique,
         witholding_account_id: idBank,

@@ -356,7 +356,7 @@ transactionRouter.put(
           if (targetWitholding) {
             // Update elemen yang ditemukan
             Object.assign(targetWitholding, {
-              down_payment: updateWitholding.down_payment,
+              // down_payment: updateWitholding.down_payment,
               status: updateWitholding.status,
               witholding_account_id: updateWitholding.witholding_account_id,
               witholding_amount: updateWitholding.witholding_amount,

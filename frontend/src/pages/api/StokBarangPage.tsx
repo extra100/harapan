@@ -482,7 +482,7 @@ console.log({formattedDate})
             basePrice: item.price,
 
             // price: Number(discountedPrices[item.id]) || retailPrice,
-            price: Math.ceil(Number(discountedPrices[item.id]) || retailPrice),
+            price: Number(discountedPrices[item.id]) || retailPrice,
 
             qty: null,
 
@@ -606,7 +606,7 @@ console.log({formattedDate})
   useEffect(() => {
     const calculateTotalSubtotal = () => {
       const total = dataSource.reduce((total, item) => total + item.subtotal, 0)
-      setTotalSubtotal(Math.ceil(total))
+      setTotalSubtotal(total)
 
       setFormattedTotalSubtotal(total.toLocaleString('id-ID'))
     }
@@ -750,9 +750,9 @@ console.log({formattedDate})
           {
             witholding_account_id: accountId || bankAccountId,
             name: selectedBank || bankAccountName,
-            down_payment: Math.ceil(amountPaid),
+            down_payment: amountPaid,
             witholding_percent: 0,
-            witholding_amount: Math.ceil(0),
+            witholding_amount: 0,
             status: 0,
             id: 0,
             trans_date: formatDate(selectedDates[0]),
@@ -774,7 +774,7 @@ console.log({formattedDate})
       include_tax: 0,
       term_id: termIdSimpan || 2,
       memo: refNumber,
-      amount: Math.ceil(totalSubtotal),
+      amount: totalSubtotal,
       amount_after_tax: 0,
       warehouse_id: selectedWarehouseId,
       attachment: [],
@@ -785,9 +785,9 @@ console.log({formattedDate})
         const latest_stock = matchingStock - item.qty
         return {
           id: 123,
-          amount: Math.ceil(item.subtotal),
+          amount: item.subtotal,
           discount_amount:
-            Math.ceil(item.gapPrice) || item.input_diskon_manual || 0,
+            item.gapPrice || item.input_diskon_manual || 0,
           finance_account_id: item.finance_account_id,
           discount_percent: item.selectedDiscountValue || 0,
           name: item.finance_account_name,
@@ -795,7 +795,7 @@ console.log({formattedDate})
           desc: '',
           qty: item.qty,
           qty_update: latest_stock || 0,
-          price: Math.ceil(item.price),
+          price: item.price,
           unit_id: item.unit_id,
           satuan: item.name,
         }
@@ -817,8 +817,8 @@ console.log({formattedDate})
         id: tag?.id || tagId,
         name: tag?.name || tagName,
       })),
-      due: Math.ceil(piutang),
-      down_payment: Math.ceil(amountPaid as any),
+      due: piutang,
+      down_payment: amountPaid as any || 0,
 
       down_payment_bank_account_id: accountId || bankAccountId,
       witholding_account_id: accountId || bankAccountId,
@@ -1018,7 +1018,7 @@ console.log({formattedDate})
             }}
           >
             <div style={{ textAlign: 'right' }}>
-              {Math.floor(record.price).toLocaleString('id-ID')}
+              {record.price.toLocaleString('id-ID')}
             </div>
             <Select
               value={record.selectedDiscount}
@@ -1167,7 +1167,7 @@ console.log({formattedDate})
       key: 'subtotal',
       align: 'right',
       render: (text: any) => (
-        <div>{text ? Math.floor(text).toLocaleString('id-ID') : '-'}</div>
+        <div>{text.toLocaleString('id-ID')}</div>
       ),
     },
 

@@ -192,7 +192,8 @@ const DetailKledo: React.FC = () => {
 
   const [amountPaid, setAmountPaid] = useState<number | null>(null)
   useEffect(() => {}, [due, amountPaid])
-
+  const simpanSisaPiutrang = amount - (amountPaid ?? 0);
+console.log({simpanSisaPiutrang})
   const roundUpIndonesianNumber = (value: number | null): string => {
     if (value === null) return ''
     return new Intl.NumberFormat('id-ID', {
@@ -418,7 +419,7 @@ const DetailKledo: React.FC = () => {
             witholding_amount: 0,
             status: 0,
             trans_date: selectedDates,
-            id: 23646,
+            id: 22,
             // _id: idMonggo,
           },
         ],
