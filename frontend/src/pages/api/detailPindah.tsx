@@ -77,9 +77,13 @@ const WarehouseTransferDetail: React.FC = () => {
   const toWarehouseName =
     warehouseMap[transfer.to_warehouse_id] || transfer.to_warehouse_name
 
-  const fromWarehouseCodes = idWarehouseMonggo?.find(
-    (warehouse) => warehouse.name === fromWarehouseId
-  )?.code
+    const fromWarehouseCode = idWarehouseMonggo?.find(
+      (warehouse) => warehouse.name === fromWarehouseName
+    )?.code
+    const noContact = idWarehouseMonggo?.find(
+      (warehouse) => warehouse.name === fromWarehouseName
+    )?.contact
+    console.log({noContact})
   const [title, setTitle] = useState('TRANSFER . . . ')
 
   useEffect(() => {
@@ -266,7 +270,7 @@ const WarehouseTransferDetail: React.FC = () => {
                     <Text>Alamat Peminta</Text>
                   </Col>
                   <Col span={12}>
-                    <Text italic>: {fromWarehouseCodes || '-'}</Text>
+                    <Text italic>: {fromWarehouseCode} {noContact}</Text>
                   </Col>
 
                   <Col span={6} style={{ textAlign: 'center' }}>
@@ -293,7 +297,7 @@ const WarehouseTransferDetail: React.FC = () => {
               columns={columns as any}
               rowKey="_id"
               pagination={false}
-              style={{ marginBottom: '0px' }}
+              style={{ marginBottom: '20px' }}
               components={{
                 header: {
                   cell: ({
@@ -346,9 +350,8 @@ const WarehouseTransferDetail: React.FC = () => {
               }}
             />
 
-            {idOutletLoggedIn === fromWarehouseName && (
               <>
-                <Row
+                {/* <Row
                   style={{
                     marginTop: '0px',
                     paddingTop: '1px',
@@ -360,9 +363,9 @@ const WarehouseTransferDetail: React.FC = () => {
                       diterima.
                     </Text>
                   </Col>
-                </Row>
+                </Row> */}
 
-                <Row
+                {/* <Row
                   justify="space-between"
                   style={{ marginTop: '32px', textAlign: 'center' }}
                 >
@@ -384,12 +387,12 @@ const WarehouseTransferDetail: React.FC = () => {
                     <br />
                     <Text>(...................................)</Text>
                   </Col>
-                </Row>
+                </Row> */}
 
                 <div style={{ textAlign: 'right' }}>
                   <Button
                     type="dashed"
-                    // onClick={handleSaveTransfer}
+                    onClick={handlePrint}
                     style={{
                       marginBottom: '16px',
                       backgroundColor: '#AF8700',
@@ -398,11 +401,11 @@ const WarehouseTransferDetail: React.FC = () => {
                       width: '300px',
                     }}
                   >
-                    + Print
+                    Print
                   </Button>
                 </div>
               </>
-            )}
+          
           </>
         )}
       </div>

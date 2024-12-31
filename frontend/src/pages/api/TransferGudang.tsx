@@ -348,7 +348,7 @@ const ProductStocksPage: React.FC = () => {
       to_warehouse_id: warehouseTujuanId,
       // from_warehouse_name: fromWarehouseName,
       // to_warehouse_name: toWarehouseName,
-
+      eksekusi: '1',
       trans_date: selectedDates,
       id: 111,
       ref_number: refNumber,

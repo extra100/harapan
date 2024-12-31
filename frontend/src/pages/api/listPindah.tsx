@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react'
-import { Button, Input, Table } from 'antd'
-import { useGetWarehouseTransfersQuery } from '../../hooks/pindahHooks'
+import { Button, Input, Switch, Table } from 'antd'
+import { useGetWarehouseTransfersQuery, useUpdateEkesekusiUntukToggle } from '../../hooks/pindahHooks'
 import { useIdWarehouse } from './namaWarehouse'
 import { useNavigate } from 'react-router-dom'
 import UserContext from '../../contexts/UserContext'
@@ -51,6 +51,24 @@ const WarehouseTransferTable: React.FC = () => {
     navigate(`/transfer-detail/${record.ref_number}`)
   }
 
+  const updateEksekusiKolom = useUpdateEkesekusiUntukToggle()
+  console.log({updateEksekusiKolom})
+  const handleSwitchChange = async (checked: boolean, controlId: string) => {
+    try {
+      const updateEksekusi = checked ? '2' : '1'
+  console.log({updateEksekusi})
+      await updateEksekusiKolom.mutateAsync({
+        _id: controlId,
+        eksekusi: updateEksekusi,
+      });
+  
+      console.log(`Status updated to: ${updateEksekusi} for ID: ${controlId}`);
+    } catch (error) {
+      console.error('Failed to update status:', error);
+    }
+  };
+  
+  
   const columns = [
     {
       title: 'Dari',
@@ -79,6 +97,30 @@ const WarehouseTransferTable: React.FC = () => {
       dataIndex: 'trans_date',
       key: 'trans_date',
     },
+    {
+      title: 'Aksi',
+      key: 'aksi',
+      render: (text: any, record: any) => (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+          onClick={(event) => event.stopPropagation()} // Mencegah propagasi klik
+        >
+          <Switch
+            onChange={(checked) => handleSwitchChange(checked, record._id)}
+            checkedChildren="PO ULANG"
+            unCheckedChildren="BATAL PO"
+            defaultChecked={record.eksekusi === '2'}
+          />
+        </div>
+      ),
+    },
+    
+    
+    
   ]
   const [activeButton, setActiveButton] = useState('')
 

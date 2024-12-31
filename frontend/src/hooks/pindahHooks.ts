@@ -147,3 +147,23 @@ export const useDeleteOutletMutation = () => {
     }
   )
 }
+
+
+export type UpdateEksekusiPayload = {
+  _id: string;
+  eksekusi: string;
+};
+
+export const useUpdateEkesekusiUntukToggle = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    (payload: UpdateEksekusiPayload) =>
+      apiClient.put<WarehouseTransfer>(`/api/pindah/${payload._id}`, payload),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['pindah']);
+      },
+    }
+  );
+};

@@ -168,11 +168,15 @@ warehouseTransferRouter.put(
           items,
           attachment,
           trans_date,
+          eksekusi,
           code, // Ambil code dari req.body
         } = req.body
 
         warehouseTransfer.from_warehouse_id =
           from_warehouse_id || warehouseTransfer.from_warehouse_id
+          
+        warehouseTransfer.eksekusi =
+        eksekusi || warehouseTransfer.eksekusi
         warehouseTransfer.to_warehouse_id =
           to_warehouse_id || warehouseTransfer.to_warehouse_id
         warehouseTransfer.from_warehouse_name =
@@ -218,5 +222,35 @@ warehouseTransferRouter.delete(
     }
   })
 )
+warehouseTransferRouter.put(
+  '/:id',
+  asyncHandler(async (req: any, res: any) => {
+    const { id } = req.params; // Ambil ID dari parameter URL
+    const { eksekusi } = req.body; // Ambil data eksekusi dari body request
+
+    try {
+      // Validasi input jika diperlukan
+      if (!eksekusi) {
+        return res.status(400).json({ message: 'Kolom eksekusi diperlukan' });
+      }
+
+      // Cari dokumen berdasarkan ID dan perbarui kolom eksekusi
+      const updatedTransfer = await WarehouseTransferModel.findByIdAndUpdate(
+        id,
+        { $set: { eksekusi } },
+        { new: true } // Kembalikan dokumen setelah diperbarui
+      );
+
+      if (!updatedTransfer) {
+        return res.status(404).json({ message: 'Transfer tidak ditemukan' });
+      }
+
+      res.status(200).json(updatedTransfer); // Kirim respons dokumen yang diperbarui
+    } catch (error) {
+      console.error('Error saat memperbarui transfer:', error);
+      res.status(500).json({ message: 'Terjadi kesalahan pada server' });
+    }
+  })
+);
 
 export default warehouseTransferRouter

@@ -25,7 +25,6 @@ export class TransferItem {
 @modelOptions({ schemaOptions: { timestamps: true } })
 export class WarehouseTransfer {
   public _id?: string
-
   @prop({ required: true })
   public from_warehouse_id!: number
   @prop({ required: true })
@@ -34,7 +33,8 @@ export class WarehouseTransfer {
   public code!: number
   @prop({ required: true })
   public to_warehouse_id!: number
-
+  @prop({ required: true })
+  public eksekusi!: string
   @prop()
   public from_warehouse_name!: string
 
@@ -46,6 +46,7 @@ export class WarehouseTransfer {
 
   @prop()
   public memo!: string
+  @prop()
 
   @prop({ type: () => [TransferItem], required: true })
   public items!: TransferItem[]

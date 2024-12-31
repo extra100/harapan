@@ -9,6 +9,7 @@ export type WarehouseTransfer = {
   from_warehouse_name: string
   to_warehouse_name: string
   ref_number: string
+  eksekusi: string
   memo: string
   items: TransferItem[]
   attachment: any[]

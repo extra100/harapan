@@ -31,60 +31,40 @@ const ListSiapDiValidasi: React.FC = () => {
 
   const today = dayjs().format('YYYY-MM-DD')
 
-  // const dataSource = Array.isArray(transfers)
-  //   ? transfers
-  //       .filter((transfer: any) => {
-  //         const transDate = dayjs(transfer.trans_date).format('YYYY-MM-DD')
-  //         const isToday = transDate === today
-
-  //         const isCommonCriteriaMet =
-  //           transfer.code === 1 &&
-  //           transfer.to_warehouse_id !== user?.isAdmin &&
-  //           (String(transfer.ref_number || '').includes(searchTerm) ||
-  //             String(transfer.from_warehouse_id || '').includes(searchTerm))
-
-  //         if (user?.isAdmin) {
-  //           return isToday && isCommonCriteriaMet
-  //         }
-
-  //         const isNonAdminCriteriaMet =
-  //           transfer.code === 1 && transfer.to_warehouse_id === idOutletLoggedIn
-
-  //         return isToday && isNonAdminCriteriaMet
-  //       })
-  //       .sort(
-  //         (a: any, b: any) =>
-  //           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  //       )
-  //   : []
   const dataSource = Array.isArray(transfers)
-    ? transfers
-        .filter((transfer: any) => {
-          const transDate = dayjs(transfer.trans_date).format('YYYY-MM-DD')
-          const threeDaysAgo = dayjs().subtract(3, 'days').format('YYYY-MM-DD')
-          const isWithinLastThreeDays =
-            transDate >= threeDaysAgo && transDate <= today
+  ? transfers
+      .filter((transfer: any) => {
+        const transDate = dayjs(transfer.trans_date).format('YYYY-MM-DD')
+        const isToday = transDate === today
 
-          const isCommonCriteriaMet =
-            transfer.code === 1 &&
-            transfer.to_warehouse_id !== user?.isAdmin &&
-            (String(transfer.ref_number || '').includes(searchTerm) ||
-              String(transfer.from_warehouse_id || '').includes(searchTerm))
+        const isCommonCriteriaMet =
+          transfer.code === 1 &&
+          transfer.to_warehouse_id !== user?.isAdmin &&
+          (String(transfer.ref_number || '').includes(searchTerm) ||
+            String(transfer.from_warehouse_id || '').includes(searchTerm))
 
-          if (user?.isAdmin) {
-            return isWithinLastThreeDays && isCommonCriteriaMet
-          }
+        const isEksekusiMet = transfer.eksekusi === '1' || transfer.eksekusi === undefined;
 
-          const isNonAdminCriteriaMet =
-            transfer.code === 1 && transfer.to_warehouse_id === idOutletLoggedIn
+        console.log({isEksekusiMet})
+        console.log({isCommonCriteriaMet})
 
-          return isWithinLastThreeDays && isNonAdminCriteriaMet
-        })
-        .sort(
-          (a: any, b: any) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-    : []
+        if (user?.isAdmin) {
+          return isToday && isCommonCriteriaMet && isEksekusiMet
+        }
+
+        const isNonAdminCriteriaMet =
+          transfer.code === 1 && transfer.to_warehouse_id === idOutletLoggedIn
+          console.log({isNonAdminCriteriaMet})
+
+        return isToday && isNonAdminCriteriaMet && isEksekusiMet
+      })
+      .sort(
+        (a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+  : []
+
+
 
   const handleRowClick = (record: any) => {
     navigate(`/validasi-pindah/${record.ref_number}`)
@@ -125,11 +105,7 @@ const ListSiapDiValidasi: React.FC = () => {
       dataIndex: 'ref_number',
       key: 'ref_number',
     },
-    {
-      title: 'Kode',
-      dataIndex: 'code',
-      key: 'code',
-    },
+
     {
       title: 'Tanggal',
       dataIndex: 'trans_date',
