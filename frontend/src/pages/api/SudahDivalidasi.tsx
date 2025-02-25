@@ -27,6 +27,7 @@ import UserContext from '../../contexts/UserContext'
 import { useIdMutation } from './takeSingleMutation'
 import { useDeleteMutation } from './DeleteInvoiceMutation'
 import { CloseCircleOutlined } from '@ant-design/icons'
+import { userefNumberFromKledo } from './UserefNumberFromKledo'
 
 const { Title, Text } = Typography
 
@@ -38,10 +39,12 @@ const SudahDivalidasi: React.FC = () => {
 
   const { idaDataBarang } = useIdNamaBarang()
   const { ref_number } = useParams<{ ref_number: string }>()
+  console.log({ref_number})
   const { data: idWarehouseMonggo } = useGetWarehousesQuery()
-
+const refNu = 16765
   const { data: transferData } = useGetWarehouseTransferByRefQuery(ref_number!)
-
+  const { getBasedOnRefNumber } = userefNumberFromKledo(refNu)
+// console.log({getBasedOnRefNumber})
   const transferArray = Array.isArray(transferData) ? transferData : []
   const transfer = transferArray[0] || {}
   const sumberData = transfer.items || []
@@ -178,8 +181,9 @@ const SudahDivalidasi: React.FC = () => {
   })
 
   //hapus
-
+const idayok = 16765
   const { getIdAtMutation } = useIdMutation(ref_number || '')
+  console.log({getIdAtMutation})
   const invoiceId = getIdAtMutation ? getIdAtMutation.id : null
 
   const refNumber = getIdAtMutation ? getIdAtMutation.ref_number : null
@@ -187,14 +191,14 @@ const SudahDivalidasi: React.FC = () => {
   const getDetailMutasiQuery = transferArray?.find(
     (transaction: any) => transaction.ref_number === ref_number
   )
-  console.log({ getDetailMutasiQuery })
+  // console.log({ getDetailMutasiQuery })
 
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(
     null
   )
   const IdYangAkanDiDelete = getDetailMutasiQuery?.id
   const memo = getDetailMutasiQuery?.memo
-  console.log({ memo })
+  // console.log({ memo })
 
   const anjing = useDeleteMutation(selectedInvoiceId ?? 0)
   const deleteMutasiMutation = useDeleteMutasiMutation()
@@ -239,6 +243,11 @@ const SudahDivalidasi: React.FC = () => {
       title: 'Item',
       dataIndex: 'product_name',
       key: 'product_name',
+    },
+    {
+      title: 'Code',
+      dataIndex: 'code',
+      key: 'code',
     },
 
     {

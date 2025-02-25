@@ -28,6 +28,7 @@ import UserContext from '../../contexts/UserContext'
 import { useGetWarehousesQuery } from '../../hooks/warehouseHooks'
 import { useGetBarangsQuery } from '../../hooks/barangHooks'
 import { TakePembayaranBankTrans } from '../TakePembayaranBankTrans'
+import { TakeInvFormKledoBasedAndDate, TakeInvFormKledoBasedWarehouseAndDate } from "./TakeInvFormKledoBasedWarehouseAndDate";
 
 const SuitExApiWithOwnDbBasedDate: React.FC = () => {
   const navigate = useNavigate()
@@ -56,12 +57,18 @@ const SuitExApiWithOwnDbBasedDate: React.FC = () => {
   const handleDateToChange = (date: dayjs.Dayjs | null) => {
     setTransDateTo(date ? date.format('YYYY-MM-DD') : null)
   }
+
+      const { getInvKledoBaseddDate } =
+      TakeInvFormKledoBasedAndDate(
+        transDateTo,
+        transDateFrom,
+      );
   const { data: gudangdb } = useGetWarehousesQuery()
   const { data: barangs } = useGetBarangsQuery()
   const [selectedWarehouse, setSelectedWarehouse] = useState<any | null>(
     idOutletLoggedIn
   )
-  // console.log({ selectedWarehouse })
+  console.log({ getInvKledoBaseddDate })
   const handleWarehouseChange = (value: string) => {
     setSelectedWarehouse(value)
   }
@@ -182,13 +189,14 @@ const SuitExApiWithOwnDbBasedDate: React.FC = () => {
     // console.log({ totalAmount })
 
     const idPadaItems =
-      selectedData.items?.map((item: any) => ({
-        id: item.id,
-        finance_account_id: item.finance_account_id,
-        price: item.price,
-        amount: item.amount,
-        discount_amount: item.discount_amount,
-      })) || []
+    selectedData.items?.map((item: any, index: number) => ({
+      id: item.id,
+      finance_account_id: item.finance_account_id,
+      price: getPosDetail?.items?.[index]?.price || 0, 
+      amount: item.amount,
+      discount_amount: item.discount_amount,
+    })) || [];
+  
 
     const idPadaWitholdings =
       getPosDetail?.witholdings?.map((item: any) => ({

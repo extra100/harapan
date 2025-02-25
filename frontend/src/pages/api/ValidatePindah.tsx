@@ -53,8 +53,9 @@ const ValidatePindah: React.FC = () => {
   const transferArray = Array.isArray(transferData) ? transferData : []
   const transfer = transferArray[0] || {}
   const sumberData = transfer.items || []
+  console.log({transferData})
   const productIds = sumberData.map((item: any) => item.product_id).join(',')
-  console.log({ productIds })
+
   const qtyPermintaan = sumberData.map((item: any) => item.qty_minta).join(',')
 
   const warehouseMap: Record<any, any> = {}
@@ -115,7 +116,7 @@ const ValidatePindah: React.FC = () => {
   const [transferQty, setTransferQty] = useState<number[]>([])
 
   const [dataSource, setDataSource] = useState<any[]>([])
-
+console.log({dataSource})
   const [fromQtyState, setFromQtyState] = useState<{ [key: number]: number }>(
     {}
   )
@@ -146,7 +147,7 @@ const ValidatePindah: React.FC = () => {
           transferQty: 0,
           fromQty: 0,
           toQty: 0,
-          code: null,
+          code: item.sku,
           id: item.product_id,
         }
       })
@@ -170,7 +171,8 @@ const ValidatePindah: React.FC = () => {
 
       items: dataSource.map((row) => ({
         qty_minta: row.qty_minta,
-        code: row.code,
+        code: row.sku || row.code,
+        sku: row.sku || row.code,
         product_id: row.product_id,
         finance_account_id: row.product_id,
         product_name: row.product_name,
@@ -379,6 +381,11 @@ const ValidatePindah: React.FC = () => {
       title: 'Barang',
       dataIndex: 'product_name',
       key: 'product_name',
+    },
+    {
+      title: 'Code',
+      dataIndex: 'sku',
+      key: 'sku',
     },
 
     {

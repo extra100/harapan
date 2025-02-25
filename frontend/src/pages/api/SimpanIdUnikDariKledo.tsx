@@ -46,6 +46,7 @@ import {
 } from '../../hooks/transactionHooks'
 import { useIdInvoice } from './takeSingleInvoice'
 import { useIdBasedMemoAndrefNumber } from './takeSingleInvoicesBasedMemo'
+import { userefNumberFromKledo } from './UserefNumberFromKledo'
 
 const { Title, Text } = Typography
 const { Option } = Select
@@ -68,6 +69,10 @@ const IdUnikDariKledo: React.FC = () => {
   const { getIdFromKledoBasedRefNumberAndMemo } = useIdBasedMemoAndrefNumber(
     ref_number as string
   )
+  const { getBasedOnRefNumber } = userefNumberFromKledo(
+    ref_number as string
+  )
+  console.log({getBasedOnRefNumber})
   const justPutId = getIdFromKledoBasedRefNumberAndMemo?.id ?? null
 
   const updateInvoiceId = async () => {

@@ -15,6 +15,7 @@ const BatchProcessPelangggans = () => {
   const [allPelangggans, setAllPelangggans] = useState<Pelanggan[]>([])
   const [pelangganSet, setPelanggganSet] = useState(new Set())
   const { idDataPelanggan } = useIdNamaPelanggan()
+  console.log({idDataPelanggan})
   const {
     data: pelanggans,
     refetch,

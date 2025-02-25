@@ -145,7 +145,8 @@ const EditMutasi: React.FC = () => {
           transferQty: 0,
           fromQty: 0,
           toQty: 0,
-          code: null,
+          code: item.sku,
+
         }
       })
       setDataSource(initialDataSource)
@@ -167,7 +168,8 @@ const EditMutasi: React.FC = () => {
         items: dataSource.map((row) => ({
           id: row.product_id,
           qty_minta: row.qty_minta,
-          code: row.code,
+          code: row.sku || row.code,
+          sku: row.sku || row.code,
           product_id: row.product_id,
           finance_account_id: row.product_id,
           product_name: row.product_name,

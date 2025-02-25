@@ -13,5 +13,7 @@ export class Warehouses {
   public contact!: string
   @prop({ required: true, unique: true })
   public platform!: string
+  @prop({ required: true, unique: true })
+  public singkatan!: string
 }
 export const WarehousesGetDb = getModelForClass(Warehouses)

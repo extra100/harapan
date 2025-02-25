@@ -1,5 +1,9 @@
-import { modelOptions, prop, getModelForClass } from '@typegoose/typegoose'
+import { modelOptions, prop, getModelForClass, index } from '@typegoose/typegoose'
 
+@index({ trans_date: 1, warehouse_id: 1 }) // Index untuk pencarian berdasarkan tanggal dan gudang
+@index({ unique_id: 1 }) // Index untuk pencarian cepat berdasarkan unique_id
+@index({ contact_id: 1 }) // Index untuk pencarian berdasarkan pelanggan/vendor
+@index({ ref_transaksi: 1 }) // Index untuk pencarian berdasarkan referensi transaksi
 @modelOptions({ schemaOptions: { timestamps: true } })
 export class Transaction {
   @prop({ required: true })
@@ -33,7 +37,7 @@ export class Transaction {
   public due!: number
   @prop({ required: true })
   public include_tax!: number
-  //
+
   @prop({ required: true })
   public term_id!: number
 
@@ -84,6 +88,10 @@ class Item {
   public finance_account_id!: number
   @prop()
   public name!: string
+  
+  @prop({ required: true })
+  public pos_product_category_id!: number
+  
 
   @prop({ required: true })
   public qty!: number

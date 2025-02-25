@@ -13,6 +13,7 @@ import {
 } from '../../hooks/contactHooks'
 import { useGetBarangByIdQuery } from '../../hooks/barangHooks'
 import { formatDate } from './FormatDate'
+import { useGetReturnByIdQuery } from '../../hooks/returnHooks'
 
 const { Title, Text } = Typography
 
@@ -55,7 +56,6 @@ const Receipt = forwardRef<HTMLDivElement>((props, ref) => {
       return total + (witholding.down_payment || 0)
     }, 0)
 
-  const sisaTagohan = totalSemua - totalDownPayment
   const namaGudang = getGudangDetail?.name ?? 0
 
   const codeGudang = getGudangDetail?.code ?? 0
@@ -75,6 +75,21 @@ const Receipt = forwardRef<HTMLDivElement>((props, ref) => {
   )
 
   const { data: contacts } = useGetContactsQuery()
+  const { data: allreturns } = useGetReturnByIdQuery(ref_number as string)
+  const getReturDetail = allreturns?.filter(
+    (balikin: any) =>
+      balikin.memo === ref_number && 
+      balikin.items?.some((item: any) => item.qty > 0)
+  );
+  // console.log({getReturDetail})
+  const totalAmountRetur = getReturDetail
+  ?.flatMap((balikin: any) => balikin.items || []) 
+  .reduce((sum: number, item: any) => sum + (item.amount || 0), 0) || 0;
+
+
+
+const totalSetelahRetur = totalSemua - totalAmountRetur 
+const sisaTagohan = totalSetelahRetur - totalDownPayment
 
   useEffect(() => {
     if (allTransactions && contacts) {
@@ -117,6 +132,16 @@ const Receipt = forwardRef<HTMLDivElement>((props, ref) => {
         return inv && item ? `Qt${item.qty_update}` : ''
       },
     },
+    // {
+    //   title: 'No',
+    //   key: 'qty_update',
+    //   render: (text: any, record: any) => {
+    //     const barang = barangStok?.find(
+    //       (barang: any) => barang.id === record.finance_account_id
+    //     )
+    //     return barang ? `Qt${barang.qty}` : ''
+    //   },
+    // },
     {
       title: 'Barang',
       dataIndex: 'name',
@@ -267,7 +292,20 @@ const Receipt = forwardRef<HTMLDivElement>((props, ref) => {
 
       <Table
         columns={columns as any}
-        dataSource={getPosDetail?.items || []}
+        // dataSource={getPosDetail?.items || []}
+        dataSource={[
+          ...(getPosDetail?.items || []),
+          ...(getReturDetail
+            ?.flatMap((retur: any) =>
+              retur.items?.map((item: any) => ({
+                ...item,
+                isRetur: true, // Tambahkan penanda untuk item dari getReturDetail
+              })) || []
+            )
+            .filter((item: any) => item.qty > 0) || []),
+        ]}
+        rowClassName={(record: any) => (record.isRetur ? 'yellow-row' : '')} // Beri kelas jika isRetur true
+
         pagination={false}
         style={{ marginTop: 20, marginBottom: 20 }}
         components={{
@@ -304,7 +342,7 @@ const Receipt = forwardRef<HTMLDivElement>((props, ref) => {
                   padding: '4px 8px',
                   fontSize: '18px',
 
-                  borderBottom: '1px dashed #000', // Garis putus-putus hitam pekat
+                  borderBottom: '1px dashed #000', 
                 }}
               >
                 {children}
@@ -379,7 +417,40 @@ const Receipt = forwardRef<HTMLDivElement>((props, ref) => {
             >
               {roundUpIndonesianNumber(totalSemua)}
             </Text>
+            
           </div>
+          {totalAmountRetur !== 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-start',
+                  gap: '3px',
+                }}
+              >
+                <Text
+                  strong
+                  style={{
+                    minWidth: '150px',
+                    textAlign: 'left',
+                    color: 'yellow',
+                    fontSize: '18px',
+                  }}
+                >
+                  Total Retur:
+                </Text>
+                <Text
+                  strong
+                  style={{
+                    minWidth: '150px',
+                    textAlign: 'right',
+                    fontSize: '18px',
+                  }}
+                >
+                  {roundUpIndonesianNumber(totalAmountRetur)}
+                </Text>
+              </div>
+            )}
+
 
           <div
             style={{
@@ -444,7 +515,7 @@ const Receipt = forwardRef<HTMLDivElement>((props, ref) => {
                 fontSize: '18px',
               }}
             >
-              {roundUpIndonesianNumber(totalDownPayment || 0)}
+              {roundUpIndonesianNumber(totalSetelahRetur|| 0)}
             </Text>
           </div>
 

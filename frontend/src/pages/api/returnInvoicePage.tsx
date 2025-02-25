@@ -86,14 +86,12 @@ const Aneh: React.FC = () => {
 
   const { data: contacts } = useGetContactsQuery()
   const { data: akunBanks } = useGetAkunBanksQueryDb()
-  //
 
-  //
 
   const { getIdAtInvoice } = useIdInvoice(ref_number || '')
 
   const invoiceId = getIdAtInvoice ? getIdAtInvoice.id : null
-  console.log({ invoiceId })
+
   const refNumber = getIdAtInvoice ? getIdAtInvoice.ref_number : null
 
   // const contactName = getPosDetail?.contacts?.[0]?.name
@@ -105,10 +103,13 @@ const Aneh: React.FC = () => {
   const tagId = getPosDetail?.tages?.map((tag: any) => tag.id) || []
   const finance_account_id =
     getPosDetail?.items?.map((item: any) => item.finance_account_id) || []
+    const namaBarang =
+    getPosDetail?.items?.map((item: any) => item.name) || []
+    console.log({namaBarang})
   const qty = getPosDetail?.items?.[0]?.qty || null
   const price = getPosDetail?.items?.[0]?.price || null
   const memorandum = getPosDetail?.memo ?? 0
-  console.log({ memorandum })
+
   const amount = getPosDetail?.amount ?? 0
   const warehouseNomor = getPosDetail?.warehouse_id ?? 0
   const status_id = getPosDetail?.status_id ?? 0
@@ -244,6 +245,7 @@ const Aneh: React.FC = () => {
       items:
         getPosDetail?.items?.map((item: any, index: any) => ({
           finance_account_id: item.finance_account_id,
+        
           tax_id: '',
           desc: '',
           qty_transaksi: item.qty,
@@ -295,10 +297,10 @@ const Aneh: React.FC = () => {
           desc: '',
           qty_transaksi: item.qty,
           qty: transferQty[index] || 0,
-
+          name: namaBarang[index] || 0,
+          amount: totalNilaiPerItme[index] || 0,
+          discount_amount: aaadiskon[index] || 0,          
           price: item.price,
-          amount: item.amount,
-          discount_amount: item.discount_amount,
           discount_percent: 0,
           price_after_tax: 0,
           amount_after_tax: 0,
@@ -316,10 +318,14 @@ const Aneh: React.FC = () => {
       ],
     }
     simpanReturn.mutate(simpanQty as any)
-    navigate(`/pembayaranretur/${memorandum}/${selectedDates}`)
-    // navigate(`/returpayment/${memorandum}`)
-
-    // useAddReturnMutation(simpanQty as any)
+    // navigate(`/pembayaranretur/${memorandum}/${selectedDates}`) 
+    if (hutang === 0) {
+      navigate(`/detailkledo/${memorandum}`);
+    } else {
+      navigate(`/pembayaranretur/${memorandum}/${selectedDates}`);
+    }
+    
+    
   }
   const printNota = useRef<HTMLDivElement>(null)
 
@@ -402,10 +408,12 @@ const Aneh: React.FC = () => {
 
   const [newRefNomor, setNewRefNomor] = useState('')
 
+
+  const [totalNilaiPerItme, setTotalNilaiPerIem] = useState<number[]>([])
+  const [aaadiskon, setAaaDiskon] = useState<number[]>([])
   const [transferQty, setTransferQty] = useState<number[]>([])
 
-  const [amounts, setAmounts] = useState<number[]>([])
-  const [aaadiskon, setAaaDiskon] = useState<number[]>([])
+  const beh = Number(aaadiskon) / Number(transferQty)
 
   const [subTotalReturn, setSubTotal] = useState(0)
   const [sumDiskon, setSumDiskon] = useState<number>(0)
@@ -414,7 +422,7 @@ const Aneh: React.FC = () => {
   const [confuse, setConfue] = useState<number>(0)
 
   useEffect(() => {
-    const total = amounts.reduce((acc, curr) => acc + (curr || 0), 0)
+    const total = totalNilaiPerItme.reduce((acc, curr) => acc + (curr || 0), 0)
     const totalDiskons = aaadiskon.reduce((acc, curr) => acc + (curr || 0), 0)
 
     const bingung = total
@@ -429,16 +437,19 @@ const Aneh: React.FC = () => {
     } else {
       setHutang(bingung)
     }
-  }, [amounts, aaadiskon, totalDownPayment])
+  }, [totalNilaiPerItme, aaadiskon, totalDownPayment])
 
   const handleSetAmountPaid = () => {
     setAmountPaid(hutang)
   }
+
+  const [selisih, setSelisih] = useState<number[]>([]);
+
   // Function to handle changes in transfer quantity
   const handleTransferQtyChange = (
     value: number,
     index: number,
-    price: number,
+    discounted_price: number,
     discount_amount: number
   ) => {
     setTransferQty((prevTransferQty) => {
@@ -446,19 +457,27 @@ const Aneh: React.FC = () => {
       updatedTransferQty[index] = value
       return updatedTransferQty
     })
-
-    setAmounts((prevAmounts) => {
+  
+    setTotalNilaiPerIem((prevAmounts) => {
       const updatedAmounts = [...prevAmounts]
-      updatedAmounts[index] = value * price
+      updatedAmounts[index] = value * discounted_price
       return updatedAmounts
     })
-
+  
     setAaaDiskon((prevDiscount) => {
       const updatedTotalDiscount = [...(prevDiscount || [])]
-      updatedTotalDiscount[index] = value * discount_amount
+      updatedTotalDiscount[index] = discount_amount
       return updatedTotalDiscount
     })
+      setTotalNilaiPerIem((prevAmounts) => {
+      const updatedAmounts = [...prevAmounts]
+      updatedAmounts[index] = value * discounted_price
+      return updatedAmounts
+    })
+  
+    
   }
+  
   const [isDiscountVisible, setIsDiscountVisible] = useState<boolean>(true)
   const [selectedDates, setSelectedDates] = useState<string>()
 
@@ -469,128 +488,179 @@ const Aneh: React.FC = () => {
     const [day, month, year] = dateString.split('-')
     return `${year}-${month}-${day}`
   }
-  const columns = [
-    {
-      title: 'NO',
-      key: 'no',
-      align: 'center',
-      render: (_: any, __: any, index: number) => (
-        <div style={{ textAlign: 'center' }}>{index + 1}</div>
-      ),
-    },
-    {
-      title: 'Barang',
-      dataIndex: 'name',
-      key: 'name',
-      align: 'center', // Header tetap rata tengah
-      render: (name: string) => (
-        <div style={{ textAlign: 'left' }}>
-          {name !== undefined ? name : ''}
-        </div>
-      ), // Konten rata kiri
-    },
 
-    {
-      title: 'Qty',
-      dataIndex: 'qty',
-      key: 'qty',
-      align: 'center',
-      render: (qty: number) => (
-        <div style={{ textAlign: 'center' }}>
-          {qty !== undefined ? qty : '0'}
-        </div>
-      ),
-    },
 
-    {
-      title: 'Satuan',
-      key: 'unit_id',
-      dataIndex: 'unit_id',
-      align: 'center',
-    },
-    {
-      title: 'Jumlah TF',
-      dataIndex: 'transferQty',
-      key: 'transferQty',
-      render: (text: string, record: any, index: number) => (
-        <Input
-          type="number"
-          value={transferQty[index] || 0}
-          onChange={(e) =>
-            handleTransferQtyChange(
-              Number(e.target.value),
-              index,
-              record.price,
-              record.discount_amount
-            )
-          }
-        />
-      ),
-    },
-    {
-      title: 'Harga Dasar',
-      key: 'basePrice',
-      align: 'center',
-      render: (text: string, record: any) => {
-        const basePrice = (record.price || 0) + (record.discount_amount || 0)
-        return (
-          <div style={{ textAlign: 'right' }}>{basePrice.toLocaleString()}</div>
-        )
+  
+    const columns = [
+      {
+        title: 'NO',
+        key: 'no',
+        align: 'center',
+        render: (_: any, __: any, index: number) => (
+          <div style={{ textAlign: 'center' }}>{index + 1}</div>
+        ),
       },
-    },
-    {
-      title: 'Harga',
-      dataIndex: 'price',
-      key: 'price',
-      align: 'center',
-      render: (price: number) => (
-        <div style={{ textAlign: 'right' }}>
-          {price !== undefined ? `${price.toLocaleString()}` : 'Rp 0'}
-        </div>
-      ),
-    },
-    isDiscountVisible && {
-      title: 'Discount per item',
-      dataIndex: 'discount_amount',
-      key: 'discount_amount',
-      align: 'center',
-      render: (discount_amount: number) => (
-        <div style={{ textAlign: 'right' }}>
-          {discount_amount !== undefined
-            ? `${discount_amount.toLocaleString()}`
-            : 'Rp 0'}
-        </div>
-      ),
-    },
+      {
+        title: 'Barang',
+        dataIndex: 'name',
+        key: 'name',
+        align: 'center',
+        render: (name: string) => (
+          <div style={{ textAlign: 'left' }}>
+            {name !== undefined ? name : ''}
+          </div>
+        ), 
+      },
 
-    {
-      title: 'total diskon',
-      dataIndex: 'total_diskon',
-      key: 'total_diskon',
-      align: 'center',
-      render: (text: any, record: any, index: number) => (
-        <div style={{ textAlign: 'right' }}>
-          {aaadiskon[index] !== undefined
-            ? `${aaadiskon[index].toLocaleString()}`
-            : 'Rp 0'}
-        </div>
-      ),
-    },
+      {
+        title: 'Qty',
+        dataIndex: 'qty',
+        key: 'qty',
+        align: 'center',
+        render: (qty: number) => (
+          <div style={{ textAlign: 'center' }}>
+            {qty !== undefined ? qty : '0'}
+          </div>
+        ),
+      },
+      isDiscountVisible && {
+        title: 'Discount',
+        dataIndex: 'discount_percent',
+        key: 'discount_percent',
+        align: 'center',
+        render: (discount_percent: number) => (
+          <div style={{ textAlign: 'right' }}>
+            {discount_percent !== undefined
+              ? `${discount_percent.toLocaleString()}%`
+              : '0%'}
+          </div>
+        ),
+      },
 
-    {
-      title: 'Total',
-      dataIndex: 'amount',
-      key: 'amount',
-      align: 'center',
-      render: (text: string, record: any, index: number) => (
-        <div style={{ textAlign: 'right' }}>
-          {amounts[index] !== undefined
-            ? `${amounts[index].toLocaleString()}`
-            : 'Rp 0'}
-        </div>
-      ),
-    },
-  ].filter(Boolean) // Remove `false` or `undefined` values
+      {
+        title: 'Umum 2',
+        key: 'original_price',
+        align: 'center',
+        render: (_: any, record: { price: number; discount_percent: number }) => {
+          const { price, discount_percent } = record;
+          const originalPrice =
+            discount_percent !== undefined && discount_percent > 0
+              ? price / (1 - discount_percent / 100)
+              : price;
+      
+          return (
+            <div style={{ textAlign: 'right' }}>
+              {originalPrice !== undefined
+                ? `${Math.round(originalPrice).toLocaleString()}`
+                : 'Rp 0'}
+            </div>
+          );
+        },
+      },
+      
+      {
+        title: 'Harga',
+        dataIndex: 'price',
+        key: 'price',
+        align: 'center',
+        render: (price: number) => (
+          <div style={{ textAlign: 'right' }}>
+            {price !== undefined ? `${price.toLocaleString()}` : 'Rp 0'}
+          </div>
+        ),
+      },
+      {
+        title: 'Selisih',
+        key: 'difference',
+        align: 'center',
+        render: (_: any, record: { price: number; discount_percent: number }) => {
+          const { price, discount_percent } = record;
+          const originalPrice =
+            discount_percent !== undefined && discount_percent > 0
+              ? price / (1 - discount_percent / 100)
+              : price;
+      
+          const difference = originalPrice - price;
+      
+          return (
+            <div style={{ textAlign: 'right' }}>
+              {difference !== undefined
+                ? `${Math.round(difference).toLocaleString()}`
+                : 'Rp 0'}
+            </div>
+          );
+        },
+      }
+,      
+      
+      {
+        title: 'Qty Retur',
+        dataIndex: 'transferQty',
+        key: 'transferQty',
+        render: (text: string, record: any, index: number) => (
+          <Input
+            type="number"
+            value={transferQty[index] || 0}
+            onChange={(e) =>
+              handleTransferQtyChange(
+                Number(e.target.value),
+                index,
+                record.price,
+                record.discount_amount
+              )
+            }
+          />
+        ),
+      }, 
+    
+     
+      {
+        title: 'Total Diskon',
+        key: 'totalValue',
+        align: 'center',
+        render: (_: any, record: { price: number; discount_percent: number }, index: number) => {
+          const { price, discount_percent } = record;
+          const originalPrice =
+            discount_percent !== undefined && discount_percent > 0
+              ? price / (1 - discount_percent / 100)
+              : price;
+      
+          const difference = originalPrice - price;
+          const qtyRetur = transferQty[index] || 0;
+          const totalValue = difference * qtyRetur;
+      
+          return (
+            <div style={{ textAlign: 'right' }}>
+              {totalValue !== undefined
+                ? `${Math.round(totalValue).toLocaleString()}`
+                : 'Rp 0'}
+            </div>
+          );
+        },
+      },
+     
+      
+  
+      {
+        title: 'Total',
+        dataIndex: 'amount',
+        key: 'amount',
+        align: 'center',
+        render: (_: string, record: any, index: number) => {
+          const transferQuantity = Number(transferQty[index] || 0); 
+          const price = Number(record.price || 0); 
+          const total = transferQuantity * price;
+      
+          return (
+            <div style={{ textAlign: 'right' }}>
+              {total > 0 ? `${total.toLocaleString()}` : 'Rp 0'}
+            </div>
+          );
+        },
+      }
+      
+      
+    ].filter(Boolean) 
 
   return (
     <div style={{ padding: '20px' }}>
@@ -774,7 +844,7 @@ const Aneh: React.FC = () => {
           </Col>
         </Row>
       </div>
-      <Card title="Pembayaran" style={{ marginTop: '20px' }}>
+      <Card title="" style={{ marginTop: '20px' }}>
         <Form layout="vertical" onFinish={handleFormSubmit}>
           <Row gutter={16}>
             <Col span={12}>
@@ -800,6 +870,7 @@ const Aneh: React.FC = () => {
 
               <NumericFormat
                 placeholder="Nilai Pembayaran"
+                disabled
                 value={amountPaid as any}
                 thousandSeparator="."
                 decimalSeparator=","
@@ -838,6 +909,7 @@ const Aneh: React.FC = () => {
                 showSearch
                 placeholder="Pilih bank"
                 value={selectedBank}
+                disabled
                 onChange={(value) => setSelectedBank(value)}
                 style={{ width: '100%' }}
                 optionFilterProp="children"
@@ -864,7 +936,7 @@ const Aneh: React.FC = () => {
           <Row justify="end">
             <Col>
               <Button type="primary" htmlType="submit">
-                Simpan Pembayaran
+                Simpan Retur
               </Button>
             </Col>
           </Row>

@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react'
 import { Button, Input, Table } from 'antd'
-import { useGetWarehouseTransfersQuery } from '../../hooks/pindahHooks'
+import { useGetPindahBywWarehouseAndDate, useGetWarehouseTransferByWarehouseId, useGetWarehouseTransfersQuery } from '../../hooks/pindahHooks'
 import { useIdWarehouse } from './namaWarehouse'
 import { useNavigate } from 'react-router-dom'
 import UserContext from '../../contexts/UserContext'
@@ -13,8 +13,16 @@ const ListSudahDivalidasi: React.FC = () => {
     idOutletLoggedIn = Number(user.id_outlet)
   }
 
-  const { data: transfers } = useGetWarehouseTransfersQuery()
+  const startDate = '2025-01-16'
+  const endDate = '2025-01-16'
+ const {
+    data: dataPindah,
+  } = useGetPindahBywWarehouseAndDate(idOutletLoggedIn, startDate, endDate)
 
+  const {
+    data: transfers
+  } = useGetWarehouseTransferByWarehouseId(idOutletLoggedIn)
+  console.log({transfers})
   const { idWarehouse } = useIdWarehouse()
   const navigate = useNavigate()
 
@@ -41,7 +49,7 @@ const ListSudahDivalidasi: React.FC = () => {
 
           const isNonAdminCriteriaMet =
             transfer.code === 2 &&
-            transfer.from_warehouse_id === idOutletLoggedIn
+            transfer.to_warehouse_id === idOutletLoggedIn
 
           return isNonAdminCriteriaMet
         })

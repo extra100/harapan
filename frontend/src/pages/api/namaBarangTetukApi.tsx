@@ -11,6 +11,7 @@ export interface Barang {
   id: number
   name: string
   price: number
+  hpp: number
   unit?: Unit
   code: string
   pos_product_category_id: string
@@ -23,7 +24,6 @@ export function useIdNamaddBarang() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Always fetch fresh data from the API, no session storage
         const response = await fetch(`${HOST}/oauth/token`, {
           method: 'POST',
           headers: {
@@ -62,6 +62,7 @@ export function useIdNamaddBarang() {
             id: item.id,
             name: item.name,
             price: item.price,
+            hpp: item.hpp,
             code: item.code,
             pos_product_category_id: item.pos_product_category_id,
             unit: item.unit

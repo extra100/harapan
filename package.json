@@ -1,5 +1,5 @@
 {
-  "name": "staypi",
+  "name": "harapan",
   "version": "1.0.0",
   "description": "## Lessons",
   "main": "index.js",
@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/extra100/staypi.git"
+    "url": "https://github.com/extra100/harapan.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/extra100/staypi"
+    "url": "https://github.com/extra100/harapan"
   },
-  "homepage": "https://github.com/extra100/staypi#readme",
+  "homepage": "https://github.com/extra100/harapan#readme",
   "engines": {
     "node": "20.10.0"
   },
@@ -54,6 +54,8 @@
     "has-flag": "^4.0.0",
     "install": "^0.13.0",
     "is-fullwidth-code-point": "^3.0.0",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "lodash": "^4.17.21",
     "react-hook-form": "^7.53.0",
     "regenerator-runtime": "^0.14.0",

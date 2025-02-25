@@ -5,6 +5,7 @@ import TOKEN from '../../token'
 export interface Product {
   id: number
   name: string
+  code: string
 }
 
 export function useIdProduct(productIds: string) {
@@ -29,6 +30,7 @@ export function useIdProduct(productIds: string) {
         const dataProduct: Product = {
           id: responseData.data.id,
           name: responseData.data.name,
+          code: responseData.data.code,
         }
         setIdProduct(dataProduct)
       } catch (error) {

@@ -27,7 +27,7 @@ import { SaveApi } from './SaveApi'
 import { v4 as uuidv4 } from 'uuid'
 import { useAddTransactionMutation } from '../../hooks/transactionHooks'
 import { Navigate } from 'react-router-dom'
-import { useGetBarangsQuery } from '../../hooks/barangHooks'
+import { useGetBarangsQuery, useUpdateBarangMutation } from '../../hooks/barangHooks'
 import { useGetContactsQuery, useGetFilteredContactsByOutletQuery } from '../../hooks/contactHooks'
 import { saveToApiNextPayment } from './NextPayment'
 import { useNavigate } from 'react-router-dom'
@@ -52,6 +52,7 @@ import dayjs from 'dayjs';
 
 const { Option } = Select
 const { Title, Text } = Typography
+import { TakePiutangToPerContactStatusIdAndMemoMny } from './TakePiutangToPerContactStatusIdAndMemoMny'
 
 const StockSelectorTable = () => {
   const [loadingSpinner, setLoadingSpinner] = useState(false) // State untuk spinner
@@ -64,7 +65,7 @@ const StockSelectorTable = () => {
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<any | null>(
     null
   )
-  console.log({selectedWarehouseId})
+  // console.log({selectedWarehouseId})  
   const [selectedWarehouse, setSelectedWarehouse] = useState<any>(undefined)
   const [selectedDates, setSelectedDates] = useState<[string, string]>(['', ''])
   
@@ -79,29 +80,40 @@ const StockSelectorTable = () => {
     formattedDate,
     selectedWarehouseId
   )
-console.log({warehouseStock})
-console.log({formattedDate})
   const userContext = useContext(UserContext)
   const { user } = userContext || {}
 
   const { idaDataBarang } = useIdNamaBarang()
   const { data: barangs } = useGetBarangsQuery()
+  // console.log({barangs})
   const { data: gudangdb } = useGetWarehousesQuery()
+  // console.log({ gudangdb })
+
   const { data: akunBanks } = useGetAkunBanksQueryDb()
 
   const { data: tagDb } = useGetTagsQueryDb()
 
   const { idWarehouse } = useIdWarehouse()
 
-  const { idContact } = useIdContact('')
+  // const { idContact } = useIdContact('')
   const [warehouseName, setWarehouseName] = useState<string | null>(null)
 
   const { data: contacts } = useGetFilteredContactsByOutletQuery(warehouseName as any)
-  const { data: controllings } = useGetControlQuery()
-// console.log({contacts})
-  const { saveInvoiceData } = SaveApi()
-  //
 
+  const { data: controllings } = useGetControlQuery()
+  const { saveInvoiceData } = SaveApi()
+
+
+  //
+ const { loading, takedueanContactStatusIdandMemoMny } =
+    TakePiutangToPerContactStatusIdAndMemoMny(
+      'MNY',
+      '2',
+      warehouseName as any
+    )
+
+
+    
   const getWarehouseName = () => {
     if (!gudangdb || !selectedWarehouseId) return null
 
@@ -111,8 +123,9 @@ console.log({formattedDate})
     )
     return selectedWarehouse ? selectedWarehouse.name : null
   }
-  // const { data: contactssss } = useGetFilteredContactsByOutletQuery(warehouseName as any);
-// console.log({contactssss})
+  const { data: contactssss } = useGetFilteredContactsByOutletQuery(warehouseName as any);
+  
+  const firstGroupId = contactssss?.[0]?.group_id || null;
 // console.log({warehouseName})
   useEffect(() => {
     const name = getWarehouseName()
@@ -181,17 +194,18 @@ console.log({formattedDate})
   const [productQuantities, setProductQuantities] = useState<{
     [key: string]: any
   }>({})
-
+console.log({productQuantities})
   const [selectedFinanceAccountIds, setSelectedFinanceAccountIds] = useState<
     any[]
   >([])
-
+// console.log({selectedFinanceAccountIds})
   useEffect(() => {
     if (user) {
       setSelectedWarehouseId(user.id_outlet)
     }
   }, [user])
   const [dataSource, setDataSource] = useState<any[]>([])
+  console.log({dataSource})
 
   useEffect(() => {
     if (selectedFinanceAccountIds.length > 0 && selectedWarehouseId !== null) {
@@ -202,27 +216,26 @@ console.log({formattedDate})
   }, [selectedFinanceAccountIds, selectedWarehouseId])
 
   const [selectedProductStocks, setSelectedProductStocks] = useState<any[]>([])
-
   useEffect(() => {
-    if (warehouseStock && selectedFinanceAccountIds.length > 0) {
+    if (barangs && selectedFinanceAccountIds.length > 0) {
       const newQuantities: Record<number, number> = {}
       const newSelectedStocks: number[] = []
-      warehouseStock.forEach((stockItem: any) => {
-        const productId = stockItem.id
-        const qty = stockItem.stock
-        if (
-          productId !== undefined &&
-          qty !== undefined &&
-          selectedFinanceAccountIds.includes(productId)
-        ) {
+  
+      barangs.forEach((barang: any) => {
+        const productId = barang.id
+        const qty = barang.qty // Asumsi `stock` ada di `barangs`
+  
+        if (productId !== undefined && qty !== undefined && selectedFinanceAccountIds.includes(productId)) {
           newQuantities[productId] = qty
           newSelectedStocks.push(qty)
         }
       })
+  
       setProductQuantities(newQuantities)
       setSelectedProductStocks(newSelectedStocks)
     }
-  }, [warehouseStock, selectedFinanceAccountIds, selectedWarehouseId])
+  }, [barangs, selectedFinanceAccountIds, selectedWarehouseId])
+  
 
   const customDisplayRender = (value: any) => {
     return ''
@@ -557,6 +570,7 @@ console.log({formattedDate})
 
   const [selectedDifference, setSelectedDifference] = useState<number>(0)
   const [termIdSimpan, setTermIdSimpan] = useState<number>(0)
+  // console.log({termIdSimpan})
   const handleDateRangeSave = (
     startDate: string,
     endDate: string,
@@ -577,14 +591,25 @@ console.log({formattedDate})
   }
 
   const [selectedContact, setSelectedContact] = useState<number | null>(null)
-
+  const selectedContactName = selectedContact 
+  ? contacts?.find(contact => contact.id === selectedContact)?.name 
+  : null;
+// console.log({selectedContact})
   const handleContactChange = (value: number) => {
     setSelectedContact(value)
   }
+
+  const { idContact } = useIdContact(firstGroupId as any)
+  // console.log({ idContact })
+  const [totalSubtotal, setTotalSubtotal] = useState<number>(0)
+
   const selectedReceivable = selectedContact
     ? idContact.find((contact: any) => contact.id === selectedContact)
         ?.receivable || 0
     : '--'
+  const nilaiPlatform = gudangdb?.find((contact: any) => contact.name === warehouseName)
+        ?.platform || 0
+//  console.log({nilaiPlatform})
 
   const formatRupiah = (number: any) => {
     return new Intl.NumberFormat('id-ID', {
@@ -597,9 +622,13 @@ console.log({formattedDate})
       const receivable = parseFloat(contact.receivable) || 0
       return total + receivable
     }, 0)
-  const limitizeTrans = totalReceivable > 3800
-  const [totalSubtotal, setTotalSubtotal] = useState<number>(0)
-  // console.log({ totalSubtotal })
+    const lastReceivable = totalReceivable +totalSubtotal
+    
+    const safeTotalReceivable = Number(lastReceivable) || 0;
+    const safeNilaiPlatform = Number(nilaiPlatform) || 0;
+    
+    const limitizeTrans = safeTotalReceivable > safeNilaiPlatform;
+
   const [formattedTotalSubtotal, setFormattedTotalSubtotal] =
     useState<string>('')
 
@@ -668,7 +697,7 @@ console.log({formattedDate})
     const last4OfUUID = uuid.substr(uuid.length - 4)
     const shortNumber = parseInt(last4OfUUID, 16) % 10000
 
-    return `IBO-${idOutlet}-${timestamp}-${String(shortNumber).padStart(
+    return `UBI-${idOutlet}-${timestamp}-${String(shortNumber).padStart(
       5,
       '0'
     )}`
@@ -686,7 +715,7 @@ console.log({formattedDate})
   }, [user])
   const generateUnique = () => {
     const uuid = uuidv4()
-    const last5OfUUID = uuid.substr(uuid.length - 5)
+    const last5OfUUID = uuid.substr(uuid.length - 2)
     const shortNumber = parseInt(last5OfUUID, 16) % 100000
     return shortNumber
   }
@@ -699,52 +728,93 @@ console.log({formattedDate})
   const [catatan, setCatatan] = useState('')
   const [yangMana, setYangMana] = useState()
 
-  const isSaveDisabled = !selectedContact || !bankAccountId
+  // const isSaveDisabled = !selectedContact || !bankAccountId || limitizeTrans;
 
   const handleSetAmountPaid = () => {
     setAmountPaid(totalSubtotal)
   }
   const [memo, setMemo] = useState('')
-  const handleSave = () => {
-    if (isSaveDisabled) return
 
+  const [error, setError] = useState<string | null>(null);
+  const [isSaveDisabled, setIsSaveDisabled] = useState(false);  // State untuk menonaktifkan tombol
+  const [clickedTime, setClickedTime] = useState<number | null>(null);  // State untuk melacak waktu klik
+  
+  // Gabungkan kondisi validasi dan kontrol waktu
+  const isSaveDisabledFinal =
+    !selectedContact ||
+    !bankAccountId ||
+    (termIdSimpan !== 2 && termIdSimpan !== 0 && limitizeTrans) ||
+    isSaveDisabled; // Tombol akan dinonaktifkan berdasarkan kondisi
+    const updateBarangMutation = useUpdateBarangMutation();
+
+    const handleUpdateStock = async () => {
+      try {
+        dataSource.forEach((item) => {
+          const matchingStock = productQuantities[item.finance_account_id] || 0;
+          const latest_stock = matchingStock - item.qty;
+    
+          console.log("🔥 ID Barang:", item.finance_account_id, "Stok Baru:", latest_stock);
+    
+          // Cari data barang asli berdasarkan finance_account_id
+          const barangLama = barangs?.find((b) => b.id === item.finance_account_id);
+          if (!barangLama) {
+            console.warn(`Barang dengan ID ${item.finance_account_id} tidak ditemukan!`);
+            return;
+          }
+    
+          updateBarangMutation.mutate({
+            ...barangLama, // Semua data barang asli
+            qty: latest_stock > 0 ? latest_stock : 0, // Update stok
+          });
+        });
+    
+        console.log("✅ Semua stok berhasil diperbarui!");
+      } catch (error) {
+        console.error("❌ Gagal update stok barang:", error);
+      }
+    };
+    
+    
+  const handleSave = async () => {
+      if (isSaveDisabled) return;
+      setIsSaveDisabled(true); // Menonaktifkan tombol
+      setClickedTime(Date.now()); // Set waktu klik
+  
     const saveTag = tagDb?.reduce((map: any, tag: any) => {
-      map[tag.name] = tag.id
-      return map
-    }, {})
-
+      map[tag.name] = tag.id;
+      return map;
+    }, {});
+  
     const saveIdTags = selectTag
       .map((id: number) => {
-        const tag = tagDb?.find((item: any) => item.id === id)
-        return tag ? { id: tag.id, name: tag.name } : null
+        const tag = tagDb?.find((item: any) => item.id === id);
+        return tag ? { id: tag.id, name: tag.name } : null;
       })
-      .filter(Boolean)
-
+      .filter(Boolean);
+  
     const accountMap = akunBanks?.reduce((map: any, warehouse: any) => {
-      map[warehouse.name] = warehouse.id
-      return map
-    }, {})
-    const accountId = accountMap[selectedBank as any]
-    setYangMana(accountId)
-
+      map[warehouse.name] = warehouse.id;
+      return map;
+    }, {});
+    const accountId = accountMap[selectedBank as any];
+    setYangMana(accountId);
+  
     const saveNameContact = idContact.reduce((map: any, warehouse: any) => {
-      map[warehouse.id] = warehouse.name
-      return map
-    }, {})
-    const saveContactName = saveNameContact[selectedContact as any]
-
+      map[warehouse.id] = warehouse.name;
+      return map;
+    }, {});
+    const saveContactName = saveNameContact[selectedContact as any];
+  
     const saveNamaGudang = idWarehouse.reduce((map: any, warehouse: any) => {
-      map[warehouse.id] = warehouse.name
-      return map
-    }, {})
-    const simpanGudang = saveNamaGudang[selectedWarehouseId as any]
-
-    let dueDate = formatDate(selectedDates[1])
+      map[warehouse.id] = warehouse.name;
+      return map;
+    }, {});
+    const simpanGudang = saveNamaGudang[selectedWarehouseId as any];
+  
+    let dueDate = formatDate(selectedDates[1]);
     if (termIdSimpan === 2) {
-      dueDate = formatDate(selectedDates[0])
+      dueDate = formatDate(selectedDates[0]);
     }
-
-    // Cek jika `amountPaid` tidak kosong
     const witholdings = amountPaid
       ? [
           {
@@ -758,8 +828,8 @@ console.log({formattedDate})
             trans_date: formatDate(selectedDates[0]),
           },
         ]
-      : []
-
+      : [];
+  
     const invoiceData = {
       id: uniqueNumber,
       jalur: 'penjualan',
@@ -781,8 +851,12 @@ console.log({formattedDate})
       reason_id: 'unvoid',
       message: memo || '',
       items: dataSource.map((item) => {
-        const matchingStock = productQuantities[item.finance_account_id]
-        const latest_stock = matchingStock - item.qty
+        const matchingStock = productQuantities[item.finance_account_id];
+        const latest_stock = matchingStock - item.qty;
+        console.log("🔥 item.id:", item.finance_account_id);
+        const matchingBarang = barangs?.find(
+          (barang) => barang.id === item.finance_account_id
+        );
         return {
           id: 123,
           amount: item.subtotal,
@@ -798,19 +872,22 @@ console.log({formattedDate})
           price: item.price,
           unit_id: item.unit_id,
           satuan: item.name,
-        }
+          pos_product_category_id: matchingBarang?.pos_product_category_id || null,
+          // pos_product_category_id: 7,
+
+        };
       }),
       witholdings,
       contacts: [
         {
           id: selectedContact,
-          name: saveContactName,
+          name: selectedContactName,
         },
       ],
       warehouses: [
         {
           warehouse_id: selectedWarehouseId,
-          name: simpanGudang,
+          name: 'harapan',
         },
       ],
       tages: saveIdTags.map((tag) => ({
@@ -819,7 +896,6 @@ console.log({formattedDate})
       })),
       due: piutang,
       down_payment: amountPaid as any || 0,
-
       down_payment_bank_account_id: accountId || bankAccountId,
       witholding_account_id: accountId || bankAccountId,
       tags: selectTag || tagId,
@@ -827,29 +903,55 @@ console.log({formattedDate})
       witholding_percent: 0,
       column_name: '',
       externalId: 0,
+    };
+  
+    setLoadingSpinner(true);
+  
+    try {
+      addPosMutation.mutate(invoiceData as any, {
+        onSuccess: () => {
+          message.success('Transaksi berhasil disimpan!');
+          handleUpdateStock()
+          // setTimeout(() => {
+          //   setIsLoading(false);
+          //   navigate(`/getinvbasedondate/${refNumber}`);
+          // }, 3000);
+        },
+        
+        onError: (error: any) => {
+          message.error(`Terjadi kesalahan: ${error.message}`);
+          setIsLoading(false);
+        },
+      });
+    } catch (err) {
+      setIsLoading(false);
+      if (err instanceof Error) {
+        message.error(`Terjadi kesalahan: ${err.message}`);
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        const errorMessage = (err as any).message || 'Terjadi kesalahan yang tidak diketahui.';
+        message.error(errorMessage);
+      } else {
+        message.error('Terjadi kesalahan yang tidak diketahui.');
+      }
     }
+    setTimeout(() => {
+      setIsSaveDisabled(false);
+    }, 5000); 
+  };
 
-    setLoadingSpinner(true)
+  useEffect(() => {
+    if (isSaveDisabled) {
+      const timer = setTimeout(() => {
+        setIsSaveDisabled(false); 
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSaveDisabled]);
 
-    saveInvoiceData(invoiceData)
-
-    setIsLoading(true) // Aktifkan loading
-    addPosMutation.mutate(invoiceData as any, {
-      onSuccess: () => {
-        message.success('Transaksi berhasil disimpan!')
-
-        setTimeout(() => {
-          setIsLoading(false)
-          navigate(`/getinvbasedondate/${refNumber}`)
-        }, 3000) // 3000ms = 3 detik
-      },
-      onError: (error: any) => {
-        message.error(`Terjadi kesalahan: ${error.message}`)
-        setIsLoading(false)
-      },
-    })
-  }
-
+  
+  
+  
+  
   const [stockQuantities, setStockQuantities] = useState<
     Record<string, number>
   >({})
@@ -863,16 +965,15 @@ console.log({formattedDate})
     })
     setStockQuantities(newStockQuantities)
   }, [barangs, warehouseStock])
-  // console.log({ stockQuantities })
 
   const columns = [
     {
-      title: 'Barang',
+      title: 'Barangss',
       dataIndex: 'finance_account_id',
       key: 'finance_account_id',
       align: 'left',
       className: 'wrap-text',
-
+    
       render: (id: any) => (
         <div>
           <Select
@@ -892,12 +993,10 @@ console.log({formattedDate})
             defaultValue={id}
           >
             {barangs?.map((product) => {
-              const stockQuantity =
-                warehouseStock.find((stock: any) => stock.id === product.id)
-                  ?.stock || 0
-
+              const stockQuantity = product.qty || 0 // Ambil qty langsung dari barangs
+    
               if (stockQuantity === 0) return null
-
+    
               return (
                 <Select.Option key={product.id} value={product.id}>
                   <div style={{ display: 'flex', alignItems: 'left' }}>
@@ -921,42 +1020,7 @@ console.log({formattedDate})
         </div>
       ),
     },
-
-    // {
-    //   title: 'Diskon',
-    //   dataIndex: 'input_diskon_manual',
-    //   key: 'input_diskon_manual',
-    //   align: 'center',
-
-    //   render: (text: any, record: any) => (
-    //     <div>
-    //       <Input
-    //         type="number"
-    //         defaultValue={text || 0}
-    //         onChange={(e) => {
-    //           const inputDiskonManual = parseFloat(e.target.value) || 0
-    //           console.log({ inputDiskonManual })
-    //           const basePrice = hargaDasar[record.finance_account_id] || 0
-    //           const hargaSetelahDiskon = basePrice - inputDiskonManual
-    //           const newSubtotal = hargaSetelahDiskon * record.qty
-
-    //           setDataSource((prev) =>
-    //             prev.map((item) =>
-    //               item.finance_account_id === record.finance_account_id
-    //                 ? {
-    //                     ...item,
-    //                     input_diskon_manual: inputDiskonManual,
-    //                     harga_setelah_diskon: hargaSetelahDiskon,
-    //                     subtotal: newSubtotal,
-    //                   }
-    //                 : item
-    //             )
-    //           )
-    //         }}
-    //       />
-    //     </div>
-    //   ),
-    // },
+   
     {
       title: 'Diskon',
       dataIndex: 'input_diskon_manual',
@@ -1007,7 +1071,6 @@ console.log({formattedDate})
           categoryId === 19
             ? discountRates
             : discountRates.filter((rate) => rate.label !== 'Istimewa SP 23%')
-        // console.log({ text })
 
         return (
           <div
@@ -1041,42 +1104,19 @@ console.log({formattedDate})
       },
     },
 
-    // {
-    //   title: 'Qty',
-    //   dataIndex: 'qty',
-    //   key: 'qty',
-    //   align: 'center',
-
-    //   render: (text: any, record: any) => (
-    //     <div>
-    //       <NumericFormat
-    //         value={text}
-    //         allowNegative={false}
-    //         thousandSeparator="."
-    //         decimalSeparator=","
-    //         decimalScale={0}
-    //         onValueChange={(values) => {
-    //           const { floatValue } = values
-    //           handleQtyChange(floatValue || 0, record)
-    //         }}
-    //         customInput={Input}
-    //         style={{ textAlign: 'center', width: '70px' }}
-    //       />
-    //     </div>
-    //   ),
-    // },
+  
     {
       title: 'Qty',
       dataIndex: 'qty',
       key: 'qty',
       align: 'center',
-
+    
       render: (text: any, record: any) => {
-        const stockQuantity =
-          warehouseStock.find(
-            (stock: any) => stock.id === record.finance_account_id
-          )?.stock || 0
-
+        const product = barangs?.find(
+          (barang: any) => barang.id === record.finance_account_id
+        )
+        const stockQuantity = product?.qty || 0 // Ambil qty langsung dari barangs
+    
         return (
           <div
             style={{
@@ -1092,39 +1132,36 @@ console.log({formattedDate})
               decimalSeparator=","
               onValueChange={(values) => {
                 const { floatValue } = values
-                const newQty = floatValue!
-
-                if (newQty > stockQuantity) {
-                  setDataSource((prev) =>
-                    prev.map((item) =>
-                      item.finance_account_id === record.finance_account_id
-                        ? { ...item, error: `Stok tersedia: ${stockQuantity}` }
-                        : item
-                    )
-                  )
-                  return
-                }
-
-                const hargaSetelahDiskon =
-                  record.harga_setelah_diskon || record.price
-
+                if (floatValue === undefined || isNaN(floatValue)) return
+    
+                const isOverStock = floatValue > stockQuantity
+    
                 setDataSource((prev) =>
                   prev.map((item) =>
                     item.finance_account_id === record.finance_account_id
                       ? {
                           ...item,
-                          qty: newQty,
-                          subtotal: hargaSetelahDiskon * newQty,
-                          error: undefined,
+                          qty: floatValue, // Simpan nilai asli yang diketik user
+                          subtotal:
+                            (record.harga_setelah_diskon || record.price) *
+                            floatValue,
+                          error: isOverStock
+                            ? `Stok tersedia: ${stockQuantity}`
+                            : undefined,
                         }
                       : item
                   )
                 )
+    
+                // Tambahkan validasi agar tidak bisa dipakai di sistem (tetap tampil di input)
+                if (isOverStock) {
+                  console.log(`Qty terlalu besar, hanya tersedia: ${stockQuantity}`)
+                }
               }}
               customInput={Input}
               style={{ textAlign: 'center', width: '70px' }}
             />
-
+    
             {record.error && (
               <span style={{ color: 'red', fontSize: '12px' }}>
                 {record.error}
@@ -1134,25 +1171,8 @@ console.log({formattedDate})
         )
       },
     },
-    // {
-    //   title: 'Harga Setelah Diskon',
-    //   dataIndex: 'harga_setelah_diskon',
-    //   key: 'harga_setelah_diskon',
-    //   render: (text: any) => (
-    //     <div>{text ? text.toLocaleString('id-ID') : '-'}</div>
-    //   ),
-    // },
-
-    // {
-    //   title: 'Subtotal',
-    //   dataIndex: 'subtotal',
-    //   key: 'subtotal',
-    //   align: 'right',
-
-    //   render: (text: any) => (
-    //     <div>{text ? text.toLocaleString('id-ID') : '-'}</div>
-    //   ),
-    // },
+    
+   
     {
       title: 'Harga Setelah Diskon',
       dataIndex: 'harga_setelah_diskon',
@@ -1268,36 +1288,52 @@ console.log({formattedDate})
                 <span style={labelStyle}>Nama Pelanggan</span>
                 <span style={labelColonStyle}>:</span>
                 <Select
-                  showSearch
-                  placeholder="Pilih Pelanggan"
-                  style={{ width: '70%' }}
-                  optionFilterProp="label"
-                  filterOption={(input: any, option: any) =>
-                    option?.label
-                      ?.toString()
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  value={selectedContact}
-                  onChange={handleContactChange}
-                >
-                  {Array.isArray(contacts) &&
-                    contacts
-                      .filter((contact) => contact.group?.name === warehouseId)
-                      .map((item) => (
-                        <Select.Option
-                          key={item.id}
-                          value={item.id}
-                          label={item.name}
-                        >
-                          {item.name}
-                        </Select.Option>
-                      ))}
-                </Select>
+  showSearch
+  placeholder="Pilih Pelanggan"
+  style={{ width: '70%' }}
+  optionFilterProp="label"
+  filterOption={(input: any, option: any) =>
+    option?.label?.toString().toLowerCase().includes(input.toLowerCase())
+  }
+  value={selectedContact}
+  onChange={handleContactChange}
+>
+  {Array.isArray(contacts) &&
+    contacts
+      .filter((contact) => contact.outlet_name === warehouseId)
+      .map((item) => (
+        <Select.Option
+          key={item.id}
+          value={item.id}
+          label={item.name}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>{item.name}</span>
+            <Badge
+  // count={Number(item.receivable).toLocaleString('id-ID', {
+  //   style: 'currency',
+  //   currency: 'IDR',
+  //   minimumFractionDigits: 0,
+  // })}
+  style={{ backgroundColor: '#52c41a', cursor: 'pointer' }}
+  onClick={() => navigate(`/detailpiutangperkontak?id=${item.id}`)}
+/>
+          </div>
+        </Select.Option>
+      ))}
+</Select>
               </Col>
               <Col span={12}>
                 <span style={labelStyle}>Outlet</span>
                 <span style={labelColonStyle}>:</span>
+                <Badge
+        count={lastReceivable?.toLocaleString('id-ID', {
+          style: 'currency',
+          currency: 'IDR',
+          minimumFractionDigits: 0,
+        })}
+        style={{ backgroundColor: '#52c41a' }}
+      />
                 <Select
                   placeholder="Warehouse"
                   showSearch
@@ -1326,48 +1362,6 @@ console.log({formattedDate})
               </Col>
             </Row>
 
-            {/* <Row gutter={16} style={{ marginBottom: '10px' }}>
-            <Col span={12}>
-              <span style={labelStyle}>Piutang/Pelanggan</span>
-              <span style={labelColonStyle}>:</span>
-              <Input
-                style={{ width: '70%' }}
-                value={formatRupiah(selectedReceivable)}
-                readOnly
-              />
-            </Col> */}
-
-            {/* <Col span={12}>
-              <span style={labelStyle}>Piutang/Outlet</span>
-              <span style={labelColonStyle}>:</span>
-              <Input
-                style={{ width: '70%' }}
-                value={formatRupiah(totalReceivable)}
-                readOnly
-              />
-            </Col>
-          </Row> */}
-
-            {/* <Row gutter={16} style={{ marginBottom: '10px' }}>
-            <Col span={12}>
-              <span style={labelStyle}>Platform</span>
-              <span style={labelColonStyle}>:</span>
-              <Input
-                style={{ width: '70%' }}
-                value={formatRupiah(20000000)}
-                readOnly
-              />
-            </Col>
-            <Col span={12}>
-              <span style={labelStyle}>Platform</span>
-              <span style={labelColonStyle}>:</span>
-              <Input
-                style={{ width: '70%' }}
-                value={formatRupiah(400000000)}
-                readOnly
-              />
-            </Col>
-          </Row> */}
             <Row gutter={16} style={{ marginBottom: '10px' }}>
               <Col span={12}>
                 <span style={labelStyle}>No Invoice</span>
@@ -1447,177 +1441,174 @@ console.log({formattedDate})
               )}
             </div>
             <Select
-              mode="multiple"
-              placeholder="Pilih Barang"
-              style={{ width: '100%', marginTop: '10px', alignItems: 'center' }}
-              optionFilterProp="items"
-              filterOption={false}
-              onChange={handleProductChange}
-              value={selectedFinanceAccountIds}
-              showSearch
-              onSearch={handleSearch}
-              open={dropdownVisible}
-              onDropdownVisibleChange={(open) => setDropdownVisible(open)}
-              dropdownRender={(menu) => (
-                <div
-                  style={{
-                    minWidth: '800px',
-                    padding: '8px',
-                    textAlign: 'center',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      textAlign: 'center',
-                      fontWeight: 'bold',
-                      padding: '8px',
-                      borderBottom: '1px solid #e8e8e8',
-                      backgroundColor: '#f5f5f5',
-                    }}
-                  >
-                    <span style={{ flex: 2, textAlign: 'center' }}>
-                      Nama Barang
-                    </span>
-                    <span style={{ flex: 1, textAlign: 'center' }}>Qty</span>
+  mode="multiple"
+  placeholder="Pilih Barang"
+  style={{ width: '100%', marginTop: '10px', alignItems: 'center' }}
+  optionFilterProp="items"
+  filterOption={false}
+  onChange={handleProductChange}
+  value={selectedFinanceAccountIds}
+  showSearch
+  onSearch={handleSearch}
+  open={dropdownVisible}
+  onDropdownVisibleChange={(open) => setDropdownVisible(open)}
+  dropdownRender={(menu) => (
+    <div
+      style={{
+        minWidth: '800px',
+        padding: '8px',
+        textAlign: 'center',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          padding: '8px',
+          borderBottom: '1px solid #e8e8e8',
+          backgroundColor: '#f5f5f5',
+        }}
+      >
+        <span style={{ flex: 2, textAlign: 'center' }}>Nama Barang</span>
+        <span style={{ flex: 1, textAlign: 'center' }}>Qty</span>
 
-                    {discountRates.map((rate) => (
-                      <span
-                        key={rate.label}
-                        style={{ flex: 1, textAlign: 'center' }}
-                      >
-                        {rate.label}
-                      </span>
-                    ))}
-                  </div>
-                  <div
-                    style={{
-                      maxHeight: '2000px',
-                      overflowY: 'auto',
-                    }}
-                  >
-                    {menu}
-                  </div>
-                </div>
-              )}
-              tagRender={customDisplayRender as any}
+        {discountRates.map((rate) => (
+          <span key={rate.label} style={{ flex: 1, textAlign: 'center' }}>
+            {rate.label}
+          </span>
+        ))}
+      </div>
+      <div
+        style={{
+          maxHeight: '2000px',
+          overflowY: 'auto',
+        }}
+      >
+        {menu}
+      </div>
+    </div>
+  )}
+  tagRender={customDisplayRender as any}
+>
+  {Array.isArray(barangs) &&
+    barangs
+      .sort((a, b) => {
+        const nameComparison = a.name.localeCompare(b.name, 'id', {
+          numeric: false,
+          sensitivity: 'base',
+        });
+        if (nameComparison !== 0) {
+          return nameComparison;
+        }
+
+        const extractNumber = (name: string) => {
+          const match = name.match(/(\d+(\.\d+)?)[mM]/);
+          return match ? parseFloat(match[1]) : 0;
+        };
+
+        return extractNumber(a.name) - extractNumber(b.name);
+      })
+      .filter((item) =>
+        item.name.toLowerCase().includes(searchValue.toLowerCase())
+      )
+      .map((product) => {
+        const filteredDiscountRates = discountRates.map((rate) => {
+          if (rate.label === 'Istimewa SP 23%') {
+            if (product.pos_product_category_id === 19) {
+              return { ...rate, percentage: 23 };
+            }
+            if (product.pos_product_category_id === 10) {
+              if (product.name.includes('PIPA KOTAK GALVANIS 4X4X')) {
+                return { ...rate, percentage: 25.5 };
+              }
+              return { ...rate, percentage: 22.5 };
+            }
+
+            return { ...rate, percentage: null };
+          }
+          return rate;
+        });
+
+        return (
+          <Select.Option key={product.id} value={product.id} label={product.id}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '4px 8px',
+                lineHeight: '1.2',
+                fontSize: '12px',
+                borderBottom: '1px solid #e8e8e8',
+              }}
             >
-              {Array.isArray(barangs) &&
-                barangs
-                  .filter((item) =>
-                    item.name.toLowerCase().includes(searchValue.toLowerCase())
-                  )
-                  .map((product) => {
-                    const stockQuantity =
-                      warehouseStock.find(
-                        (stock: any) => stock.id === product.id
-                      )?.stock || 0
-                    if (stockQuantity === 0) return null
-                    const filteredDiscountRates = discountRates.map((rate) => {
-                      if (rate.label === 'Istimewa SP 23%') {
-                        if (product.pos_product_category_id === 19) {
-                          return { ...rate, percentage: 23 }
-                        }
-                        if (product.pos_product_category_id === 10) {
-                          if (
-                            product.name.includes('PIPA KOTAK GALVANIS 4X4X')
-                          ) {
-                            return { ...rate, percentage: 25.5 }
-                          }
-                          return { ...rate, percentage: 22.5 }
-                        }
+              <span
+                style={{
+                  flex: 2,
+                  textAlign: 'left',
+                  borderRight: '1px solid #e8e8e8',
+                  paddingRight: '8px',
+                  wordWrap: 'break-word',
+                  whiteSpace: 'normal',
+                }}
+              >
+                {product.name}
+              </span>
 
-                        return { ...rate, percentage: null }
-                      }
-                      return rate
-                    })
+              <span
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  borderRight: '1px solid #e8e8e8',
+                  paddingRight: '8px',
+                  paddingLeft: '8px',
+                  wordWrap: 'break-word',
+                  whiteSpace: 'normal',
+                }}
+              >
+                {Number(product.qty).toLocaleString('id-ID')}
+              </span>
 
-                    return (
-                      <Select.Option
-                        key={product.id}
-                        value={product.id}
-                        label={product.id}
-                      >
-                        <div
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: '4px 8px',
-                            lineHeight: '1.2',
-                            fontSize: '12px',
-                            borderBottom: '1px solid #e8e8e8',
-                          }}
-                        >
-                          <span
-                            style={{
-                              flex: 2,
-                              textAlign: 'left',
-                              borderRight: '1px solid #e8e8e8',
-                              paddingRight: '8px',
-                              wordWrap: 'break-word',
-                              whiteSpace: 'normal',
-                            }}
-                          >
-                            {product.name}
-                          </span>
+              {filteredDiscountRates.map((rate) => {
+                const discountedPrice =
+                  rate.percentage !== null
+                    ? (
+                        product.price -
+                        (product.price * rate.percentage) / 100
+                      ).toFixed(2)
+                    : 0;
 
-                          <span
-                            style={{
-                              flex: 1,
-                              textAlign: 'center',
-                              borderRight: '1px solid #e8e8e8',
-                              paddingRight: '8px',
-                              paddingLeft: '8px',
-                              wordWrap: 'break-word',
-                              whiteSpace: 'normal',
-                            }}
-                          >
-                            {Number(stockQuantity).toLocaleString('id-ID')}
-                          </span>
+                return (
+                  <span
+                    key={rate.label}
+                    onClick={() => handlePriceClick(rate.label, product)}
+                    style={{
+                      flex: 1,
+                      textAlign: 'center',
+                      backgroundColor:
+                        selectedPrices[product.id] === rate.label
+                          ? '#52C41A'
+                          : 'transparent',
+                      cursor: 'pointer',
+                      paddingLeft: '8px',
+                      paddingRight: '8px',
+                      borderRight: '1px solid #e8e8e8',
+                      wordWrap: 'break-word',
+                      whiteSpace: 'normal',
+                    }}
+                  >
+                    {Number(discountedPrice).toLocaleString('id-ID')}
+                  </span>
+                );
+              })}
+            </div>
+          </Select.Option>
+        );
+      })}
+</Select>;
 
-                          {filteredDiscountRates.map((rate) => {
-                            const discountedPrice =
-                              rate.percentage !== null
-                                ? (
-                                    product.price -
-                                    (product.price * rate.percentage) / 100
-                                  ).toFixed(2)
-                                : 0
-
-                            return (
-                              <span
-                                key={rate.label}
-                                onClick={() =>
-                                  handlePriceClick(rate.label, product)
-                                }
-                                style={{
-                                  flex: 1,
-                                  textAlign: 'center',
-                                  backgroundColor:
-                                    selectedPrices[product.id] === rate.label
-                                      ? '#52C41A'
-                                      : 'transparent',
-                                  cursor: 'pointer',
-                                  paddingLeft: '8px',
-                                  paddingRight: '8px',
-                                  borderRight: '1px solid #e8e8e8',
-                                  wordWrap: 'break-word',
-                                  whiteSpace: 'normal',
-                                }}
-                              >
-                                {Number(discountedPrice).toLocaleString(
-                                  'id-ID'
-                                )}
-                              </span>
-                            )
-                          })}
-                        </div>
-                      </Select.Option>
-                    )
-                  })}
-            </Select>
 
             {/* <div>
           {warehouseStock.length > 0 ? (
@@ -1801,11 +1792,11 @@ console.log({formattedDate})
                   onClick={handleSave}
                   type="primary"
                   style={{ marginTop: '10px', width: '45%' }}
-                  disabled={isSaveDisabled} // Tombol dinonaktifkan jika salah satu masih kosong
+                  // disabled={isSaveDisabledFinal} 
                 >
                   Simpan
                 </Button>
-              </Row>
+               </Row>
             </Form>
           </div>
         </div>
@@ -1870,9 +1861,27 @@ console.log({formattedDate})
           >
             {Array.isArray(barangs) &&
               barangs
-                .filter((item) =>
-                  item.name.toLowerCase().includes(searchValue.toLowerCase())
-                )
+          
+              .sort((a, b) => {
+
+                const nameComparison = a.name.localeCompare(b.name, 'id', {
+                  numeric: false,
+                  sensitivity: 'base',
+                });
+                if (nameComparison !== 0) {
+                  return nameComparison; 
+                }
+         
+                const extractNumber = (name: string) => {
+                  const match = name.match(/(\d+(\.\d+)?)[mM]/);
+                  return match ? parseFloat(match[1]) : 0; 
+                };
+          
+                return extractNumber(a.name) - extractNumber(b.name);
+              })
+              .filter((item) =>
+                item.name.toLowerCase().includes(searchValue.toLowerCase())
+              )
                 .map((product) => {
                   // const stockQuantity =
                   //   warehouseStock.find((stock: any) => stock.id === product.id)

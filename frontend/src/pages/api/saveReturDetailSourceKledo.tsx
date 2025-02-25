@@ -60,15 +60,16 @@ const SaveReturDetailSourceKledo: React.FC = () => {
   )
 
   const idBank = getPosDetail?.witholdings?.[0]?.witholding_account_id
+  const navigate = useNavigate()
 
   const handleSave = () => {
     if (!getIdReturPayment || getIdReturPayment.length === 0) {
-      message.error('Data pembayaran retur tidak ditemukan.')
-      return
+      message.error('Data pembayaran retur tidak ditemukan.');
+      return;
     }
-
-    const firstPayment = getIdReturPayment[0]
-
+  
+    const firstPayment = getIdReturPayment[0];
+  
     const dataToSave = {
       amount: firstPayment.due || 0,
       attachment: [],
@@ -76,18 +77,20 @@ const SaveReturDetailSourceKledo: React.FC = () => {
       business_tran_id: firstPayment.id || '',
       memo: firstPayment.memo || null,
       trans_date: dayjs().format('YYYY-MM-DD'),
-    }
-
+    };
+  
     bayarTagihanRetur(dataToSave)
       .then(() => {
-        message.success('Data berhasil disimpan!')
+        message.success('Data berhasil disimpan!');
+        // Navigasi ke halaman detail
+        navigate(`/detailkledo/${firstPayment.memo}`);
       })
       .catch((error) => {
-        console.error('Error menyimpan data:', error)
-        message.error('Gagal menyimpan data.')
-      })
-  }
-
+        console.error('Error menyimpan data:', error);
+        message.error('Gagal menyimpan data.');
+      });
+  };
+  
   const columns = [
     {
       title: 'amount',

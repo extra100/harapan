@@ -27,7 +27,7 @@ const DateRange: React.FC<DateRangeProps> = (props) => {
   const getPosDetail = allTransactions?.find(
     (transaction: any) => transaction.ref_number === ref_number
   )
-  console.log({ getPosDetail })
+  // console.log({ getPosDetail })
   const initialStartDate = getPosDetail?.trans_date
     ? dayjs(getPosDetail.trans_date, 'YYYY-MM-DD')
     : dayjs()

@@ -23,9 +23,10 @@ const DetailPiutangKontak = forwardRef<HTMLDivElement>((props, ref) => {
       console.log('contactId is updated:', contactId)
     }
   }, [contactId])
-  console.log({ contactId })
   const location = useLocation()
   const [filteredData, setFilteredData] = useState<any[]>([])
+  console.log({ filteredData })
+
   const [aaa, setAaa] = useState<any[]>([])
   console.log({ aaa })
   const { takeInvoicesFromKledoBasedOnPelanggan } =
@@ -104,10 +105,7 @@ const DetailPiutangKontak = forwardRef<HTMLDivElement>((props, ref) => {
   const filteredPhoto = gudangs
   ?.filter((gudang) => gudang.name === outletPelanggan)
   .map((gudang) => gudang.photo);
-console.log(filteredNames);
 
-
-console.log({filteredGudangs})
   const namaGudang = gudangs?.find(
     (contact: any) => contact.id === firstWarehouseId
   )?.name
@@ -133,13 +131,37 @@ console.log({filteredGudangs})
     })),
   ]
   const columns = [
+ 
     {
-      title: 'No. INV',
-      dataIndex: 'ref_number',
-      key: 'ref_number',
-      ellipsis: true, // Untuk teks panjang
-      align: 'left',
+      title: 'Referensi',
+      key: 'references',
+      render: (text: any, record: any) => {
+        let href = '';
+        if (record.ref_number.startsWith('IBO') || record.ref_number.startsWith('UBI')) {
+          href = `/detailkledo/${record.ref_number}`;
+        } else if (record.ref_number.startsWith('MNY')) {
+          href = `https://app.kledo.com/#/debit-memo/detail/${record.id}`;
+        } else if (record.ref_number.startsWith('INV')) {
+          href = `https://app.kledo.com/#/sales/invoices/detail/${record.id}`;
+        }
+    
+        return (
+          <div style={{ textAlign: 'left', width: '180px' }}>
+            <a
+              href={href}
+              style={{ color: 'blue', textDecoration: 'none', fontSize: '10px' }}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {record.ref_number}
+            </a>
+          </div>
+        );
+      },
     },
+    
+    
+    
     {
       title: 'Tgl. Trans',
       dataIndex: 'trans_date',

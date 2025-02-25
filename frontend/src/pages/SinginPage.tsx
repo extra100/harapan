@@ -31,6 +31,7 @@ export default function SigninPage() {
   console.log(setUser)
 
   const { mutateAsync: signin, isLoading } = useSigninMutation()
+  console.log("useSigninMutation:", { signin, isLoading });
 
   const submitHandler = async (e: React.SyntheticEvent) => {
     e.preventDefault()
@@ -41,8 +42,8 @@ export default function SigninPage() {
         id_outlet,
       })
 
-      // Set user ke dalam context
       setUser(data)
+      console.log(data)
 
       dispatch({ type: 'USER_SIGNIN', payload: data })
       localStorage.setItem('userInfo', JSON.stringify(data))

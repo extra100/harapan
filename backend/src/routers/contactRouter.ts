@@ -39,16 +39,26 @@ contactRouter.get(
 
 contactRouter.post(
   '/',
-  asyncHandler(async (req, res) => {
-    try {
-      const productData = req.body
-      delete productData._id
+  asyncHandler(async (req: any, res: any) => {
 
-      const newProduct = await ContactModel.create(productData)
-      res.status(201).json(newProduct)
+    const posData = {
+      id: req.body.id,
+      name: req.body.name,
+      phone: req.body.phone || '-', 
+      address: req.body.address || '-', 
+      group_id: req.body.group_id ?? 0,
+      outlet_name: req.body.group?.name || '-', 
+      group: req.body.group
+        ? { id: req.body.group.id, name: req.body.group.name }
+        : undefined,
+    }
+
+    try {
+      const justPos = await ContactModel.create(posData)
+      res.status(201).json(justPos)
     } catch (error) {
-      console.error('Server Error:', error)
-      res.status(500).json({ message: 'Internal Server Error' })
+      console.error('Error creating contact:', error)
+      res.status(500).json({ message: 'Error creating contact', error })
     }
   })
 )

@@ -21,13 +21,13 @@ returnRouter.get(
 )
 
 returnRouter.get(
-  '/:ref_number',
+  '/:memo',
   asyncHandler(async (req: any, res: any) => {
     try {
-      console.log('Received ref_number:', req.params.ref_number)
+      console.log('Received memo:', req.params.memo)
 
       const posData = await ReturnModel.find({
-        ref_number: req.params.ref_number,
+        memo: req.params.memo,
       })
 
       if (posData && posData.length > 0) {

@@ -42,7 +42,7 @@ import {
   useGetContactsQuerysa,
   // useGetContactsQueryIdKontak,
 } from '../../hooks/contactHooks'
-import { useGetAkunBanksQueryDb } from '../../hooks/akunBankHooks'
+import { useAddAkunBank, useGetAkunBanksQueryDb } from '../../hooks/akunBankHooks'
 import { useGetWarehousesQuery } from '../../hooks/warehouseHooks'
 import { NumericFormat } from 'react-number-format'
 
@@ -66,6 +66,8 @@ import {
 } from '@ant-design/icons'
 import { useDeleteInvoice } from './DeleteInvoicePenjualan'
 import { useRedData } from '../../badgeMessage'
+import { useGetBarangsQuery, useUpdateBarangMutation } from '../../hooks/barangHooks'
+import { useQueryClient } from '@tanstack/react-query'
 
 const { Title, Text } = Typography
 const { Option } = Select
@@ -75,11 +77,6 @@ const DetailKledo: React.FC = () => {
   const currentDate = dayjs()
   const [startDate, setStartDate] = useState<Dayjs>(currentDate)
 
-  const handleStartDateChange = (date: Dayjs | null) => {
-    if (date) {
-      setStartDate(date)
-    }
-  }
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowButtons(true)
@@ -94,18 +91,31 @@ const DetailKledo: React.FC = () => {
   const { data: allTransactions } = useGetTransactionByIdQuery(
     ref_number as string
   )
+
+  
   const { data: allreturns } = useGetReturnByIdQuery(ref_number as string)
   // console.log({ allreturns })
   const { data: contacts } = useGetContactsQuery()
   const { data: akunBanks } = useGetAkunBanksQueryDb()
+console.log({akunBanks})
+
 
   const getPosDetail = allTransactions?.find(
     (transaction: any) => transaction.ref_number === ref_number
   )
-  const getReturDetail = allreturns?.find(
-    (balikin: any) => balikin.ref_transaksi === ref_number
-  )
+
+  const getReturDetail = allreturns?.filter(
+    (balikin: any) =>
+      balikin.memo === ref_number && 
+      balikin.items?.some((item: any) => item.qty > 0)
+  );
+  
   // console.log({ getReturDetail })
+  const totalAmountRetur = getReturDetail
+  ?.flatMap((balikin: any) => balikin.items || []) // Menggabungkan semua items
+  .reduce((sum: number, item: any) => sum + (item.amount || 0), 0) || 0; // Menjumlahkan amount
+
+// console.log('Total Amount:', totalAmountRetur);
 
   //delete
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(
@@ -113,6 +123,7 @@ const DetailKledo: React.FC = () => {
   )
   const IdYangAkanDiDelete = getPosDetail?.id
   const memorandum = getPosDetail?.memo || ref_number
+  const ketVoid = getPosDetail?.reason_id
   // console.log({ memorandum })
   const idMonggo = getPosDetail?._id
   const pesan = getPosDetail?.message
@@ -181,27 +192,29 @@ const DetailKledo: React.FC = () => {
       return sum + (witholding.down_payment || 0)
     }, 0)
 
-  const due = amount - totalDownPayment
-
+  const due = amount - totalDownPayment - totalAmountRetur
+// console.log({due})
   const totalDiscount = items.reduce((total: number, item: any) => {
     return total + (item.discount_amount || 0)
   }, 0)
   const subTotal = totalDiscount + amount
+  const finalTotalAgterRetur = amount - (totalAmountRetur || 0);
+  const finalDueAfterRerur = due - (totalAmountRetur || 0);
 
   const { fiAc } = useFiac()
 
   const [amountPaid, setAmountPaid] = useState<number | null>(null)
-  useEffect(() => {}, [due, amountPaid])
+  console.log({amountPaid})
+  useEffect(() => {}, [finalDueAfterRerur, amountPaid])
   const simpanSisaPiutrang = amount - (amountPaid ?? 0);
-console.log({simpanSisaPiutrang})
+
   const roundUpIndonesianNumber = (value: number | null): string => {
-    if (value === null) return ''
+    if (value === null) return '';
     return new Intl.NumberFormat('id-ID', {
       style: 'decimal',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value)
-  }
+    }).format(value);
+  };
+  
 
   const handleAmountPaidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value)
@@ -213,7 +226,7 @@ console.log({simpanSisaPiutrang})
     }
   }
   const handleSetAmountPaid = () => {
-    setAmountPaid(Math.round(due))
+    setAmountPaid(due)
   }
 
   const [contactName, setContactName] = useState<string>('Unknown Contact')
@@ -230,247 +243,256 @@ console.log({simpanSisaPiutrang})
   const { idWarehouse } = useIdWarehouse()
 
   const [selectedBank, setSelectedBank] = useState<any | null>(null)
+  const bankId = akunBanks?.find((b) => b.name === selectedBank)?.id || ""
 
+  console.log({selectedBank})
+  console.log({bankId})
+const handleBankChange = (selectedName: string) => {
+  const selected = akunBanks?.find((bank: any) => bank.name === selectedName)
+  setSelectedBank(selected ? selected.id : null)
+}
   const today = dayjs().format('DD-MM-YYYY')
   const { saveNextPayment } = saveToApiNextPayment()
-  const handleVoid = (values: any) => {
-    if (langka) {
-      const existingInvoice = allTransactions?.find(
-        (transaction) => transaction.id === langka
-      )
+    const { data: barangs } = useGetBarangsQuery()
+  
+    const updateBarangMutation = useUpdateBarangMutation() // Tambahkan hook ini\
+    const queryClient = useQueryClient(); // Tambahkan ini
 
-      if (existingInvoice) {
-        voidInvoice(langka as any)
-          .then(() => {
-            const updatedInvoice: Transaction = {
-              ...existingInvoice,
-              reason_id: 'void',
-            }
+const handleVoid = (values: any) => {
+  if (!langka) {
+    message.error('Menyebabkan double data');
+    return;
+  }
 
-            updatePosMutation.mutate(updatedInvoice, {
+  const existingInvoice = allTransactions?.find(
+    (transaction) => transaction.id === langka
+  );
+
+  if (!existingInvoice) {
+    message.error('Melebihi batas pembatalan');
+    return;
+  }
+
+  voidInvoice(langka as any)
+    .then(() => {
+      if (barangs) {
+        existingInvoice.items.forEach((item) => {
+          const barangIndex = barangs.findIndex(
+            (barang) => barang.id === item.finance_account_id
+          );
+
+          if (barangIndex !== -1) {
+            const updatedBarang = {
+              ...barangs[barangIndex],
+              qty: barangs[barangIndex].qty + item.qty,
+            };
+
+            console.log('Updating barang:', updatedBarang);
+
+            updateBarangMutation.mutate(updatedBarang, {
               onSuccess: () => {
-                message.success('Transaksi berhasil dibatalkan dan diperbarui!')
-                setLoadingSpinner(true)
-
-                setTimeout(() => {
-                  setLoadingSpinner(false)
-                  navigate('/listvoid')
-                }, 3000)
+                console.log(`Barang ${updatedBarang.id} updated successfully`);
+                queryClient.invalidateQueries(['barangs']);
               },
               onError: (error) => {
-                message.error(
-                  `Terjadi kesalahan saat memperbarui database: ${error.message}`
-                )
+                if (error instanceof Error) {
+                  console.error(`Error updating barang: ${error.message}`);
+                  message.error(`Gagal memperbarui stok: ${error.message}`);
+                } else {
+                  console.error('Terjadi kesalahan yang tidak diketahui:', error);
+                  message.error('Terjadi kesalahan yang tidak diketahui.');
+                }
               },
-            })
-          })
-          .catch((error) => {
-            message.error(
-              `Terjadi kesalahan saat void invoice: ${error.message}`
-            )
-          })
-      } else {
-        message.error('Melebihi batas pembatalan:')
+            });
+          }
+        });
       }
-    } else {
-      message.error('Menyebabkan double data')
-    }
-  }
+
+      const updatedInvoice: Transaction = {
+        ...existingInvoice,
+        reason_id: 'void',
+      };
+
+      updatePosMutation.mutate(updatedInvoice, {
+        onSuccess: () => {
+          message.success('Transaksi berhasil dibatalkan dan diperbarui!');
+          setLoadingSpinner(true);
+
+          setTimeout(() => {
+            setLoadingSpinner(false);
+            navigate('/listvoid');
+          }, 3000);
+        },
+        onError: (error) => {
+          if (error instanceof Error) {
+            message.error(
+              `Terjadi kesalahan saat memperbarui database: ${error.message}`
+            );
+          } else {
+            message.error('Terjadi kesalahan yang tidak diketahui.');
+          }
+        },
+      });
+    })
+    .catch((error) => {
+      if (error instanceof Error) {
+        console.error(`Error voiding invoice: ${error.message}`);
+        message.error(`Terjadi kesalahan saat void invoice: ${error.message}`);
+      } else {
+        console.error('Terjadi kesalahan yang tidak diketahui:', error);
+        message.error('Terjadi kesalahan yang tidak diketahui.');
+      }
+    });
+};
+
+    
+    
+  
 
   const [loadingSpinner, setLoadingSpinner] = useState(false)
 
   const handleUnVoid = (values: any) => {
-    if (langka) {
-      const existingInvoice = allTransactions?.find(
-        (transaction) => transaction.id === langka
-      )
-
-      if (existingInvoice) {
-        unvoidInvoice(langka as any)
-          .then(() => {
-            const updatedInvoice: Transaction = {
-              ...existingInvoice,
-              reason_id: 'unvoid',
+    if (!langka) {
+      message.error('Menyebabkan double data');
+      return;
+    }
+  
+    const existingInvoice = allTransactions?.find(
+      (transaction) => transaction.id === langka
+    );
+  
+    if (!existingInvoice) {
+      message.error('Melebihi batas pembatalan');
+      return;
+    }
+  
+    unvoidInvoice(langka as any)
+      .then(() => {
+        if (barangs) {
+          existingInvoice.items.forEach((item) => {
+            const barangIndex = barangs.findIndex(
+              (barang) => barang.id === item.finance_account_id
+            );
+  
+            if (barangIndex !== -1) {
+              const updatedBarang = {
+                ...barangs[barangIndex],
+                qty: barangs[barangIndex].qty - item.qty, // Kurangi stok
+              };
+  
+              console.log('Updating barang:', updatedBarang);
+  
+              updateBarangMutation.mutate(updatedBarang, {
+                onSuccess: () => {
+                  console.log(`Barang ${updatedBarang.id} updated successfully`);
+                  queryClient.invalidateQueries(['barangs']);
+                },
+                onError: (error) => {
+                  if (error instanceof Error) {
+                    console.error(`Error updating barang: ${error.message}`);
+                    message.error(`Gagal memperbarui stok: ${error.message}`);
+                  } else {
+                    console.error('Terjadi kesalahan yang tidak diketahui:', error);
+                    message.error('Terjadi kesalahan yang tidak diketahui.');
+                  }
+                },
+              });
             }
-
-            // Lanjutkan dengan mutasi untuk memperbarui database
-            updatePosMutation.mutate(updatedInvoice, {
-              onSuccess: () => {
-                message.success('Transaksi berhasil dibatalkan dan diperbarui!')
-                setLoadingSpinner(true)
-
-                setTimeout(() => {
-                  setLoadingSpinner(false)
-                  navigate('/listvoid')
-                }, 3000)
-              },
-              onError: (error) => {
-                message.error(
-                  `Terjadi kesalahan saat memperbarui database: ${error.message}`
-                )
-              },
-            })
-          })
-          .catch((error) => {
-            message.error(
-              `Terjadi kesalahan saat void invoice: ${error.message}`
-            )
-          })
-      } else {
-        message.error('Melebihi batas pembatalan:')
-      }
-    } else {
-      message.error('Menyebabkan double data')
-    }
-  }
-  // const handleFormSubmit = (values: any) => {
-  //   const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
-  //     map[warehouse.name] = warehouse.id
-  //     return map
-  //   }, {})
-
-  //   const accountId = accountMap[selectedBank as any]
-
-  //   if (langka) {
-  //     const invoiceData = {
-  //       witholdings: [
-  //         {
-  //           witholding_account_id: accountId || bankAccountId,
-  //           name: selectedBank || bankAccountName,
-  //           amount: amountPaid || 0,
-  //           witholding_percent: 0,
-  //           // witholding_amount: amountPaid || 0,
-  //           status: 0,
-  //           trans_date: selectedDates,
-  //           id: 23646,
-  //         },
-  //       ],
-  //     }
-
-  //     const existingInvoice = allTransactions?.find(
-  //       (transaction) => transaction.id === langka
-  //     )
-
-  //     if (existingInvoice) {
-  //       const updatedWithholdings = [
-  //         ...existingInvoice.witholdings,
-  //         ...invoiceData.witholdings,
-  //       ]
-
-  //       const updatedInvoice = {
-  //         ...existingInvoice,
-  //         witholdings: updatedWithholdings,
-  //       }
-
-  //       updatePosMutation.mutate(updatedInvoice as any, {
-  //         onSuccess: () => {
-  //           console.log('Invoice updated successfully.')
-  //           navigate(`/getnextpaymnet/${refNumber}`)
-  //         },
-  //         onError: (error: any) => {
-  //           console.error('Error updating invoice:', error)
-  //         },
-  //       })
-  //     } else {
-  //       console.error('Invoice with ref_number not found:', refNumber)
-  //     }
-  //   } else {
-  //     console.error('No valid ref_number found.')
-  //   }
-
-  //   // Membuat payload untuk pembayaran baru
-  //   const payload = {
-  //     amount: amountPaid || 0,
-  //     attachment: [],
-  //     bank_account_id: accountId || bankAccountId,
-  //     business_tran_id: langka,
-
-  //     // witholding_amount: amountPaid,
-  //     memo: memorandum,
-  //     trans_date: selectedDates,
-  //     witholdings: [],
-  //   }
-
-  //   saveNextPayment(payload)
-  //     .then((response: any) => {
-  //       console.log('Payment saved successfully:', response)
-  //       navigate(`/getnextpaymnet/${refNumber}`) // Navigasi setelah berhasil
-  //     })
-  //     .catch((error: any) => {
-  //       console.error('Error saving payment:', error)
-  //     })
-  // }
-  const handleFormSubmit = (values: any) => {
-    const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
-      map[warehouse.name] = warehouse.id
-      return map
-    }, {})
-
-    const accountId = accountMap[selectedBank as any]
-
-    if (langka) {
-      const invoiceData = {
-        witholdings: [
-          {
-            witholding_account_id: accountId || bankAccountId,
-            name: selectedBank || bankAccountName,
-            down_payment: amountPaid || 0,
-            witholding_percent: 0,
-            witholding_amount: 0,
-            status: 0,
-            trans_date: selectedDates,
-            id: 22,
-            // _id: idMonggo,
+          });
+        }
+  
+        const updatedInvoice: Transaction = {
+          ...existingInvoice,
+          reason_id: 'unvoid',
+        };
+  
+        updatePosMutation.mutate(updatedInvoice, {
+          onSuccess: () => {
+            message.success('Transaksi berhasil dikembalikan dan diperbarui!');
+            setLoadingSpinner(true);
+  
+            setTimeout(() => {
+              setLoadingSpinner(false);
+              navigate('/listvoid');
+            }, 3000);
           },
-        ],
-      }
+          onError: (error) => {
+            if (error instanceof Error) {
+              message.error(
+                `Terjadi kesalahan saat memperbarui database: ${error.message}`
+              );
+            } else {
+              message.error('Terjadi kesalahan yang tidak diketahui.');
+            }
+          },
+        });
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          console.error(`Error unvoiding invoice: ${error.message}`);
+          message.error(`Terjadi kesalahan saat unvoid invoice: ${error.message}`);
+        } else {
+          console.error('Terjadi kesalahan yang tidak diketahui:', error);
+          message.error('Terjadi kesalahan yang tidak diketahui.');
+        }
+      });
+  };
+  
 
+  const handleFormSubmit = async (values: any) => {
+    const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
+      map[warehouse.name] = warehouse.id;
+      return map;
+    }, {});
+  
+    const accountId = accountMap[selectedBank as any];
+  
+    if (!langka) {
+      console.error("No valid ref_number found.");
+      return;
+    }
+  
+ 
+  
+    try {
+      navigate(`/getnextpaymnet/${memorandum}`);
+  
       const existingInvoice = allTransactions?.find(
         (transaction) => transaction.id === langka
-      )
-
-      if (existingInvoice) {
-        const updatedWithholdings = [
-          ...existingInvoice.witholdings,
-          ...invoiceData.witholdings,
-        ]
-
-        const updatedInvoice = {
-          ...existingInvoice,
-          witholdings: updatedWithholdings,
-        }
-
-        updatePosMutation.mutate(updatedInvoice as any)
-      } else {
-        console.error('Invoice with ref_number not found:', refNumber)
+      );
+  
+      if (!existingInvoice) {
+        console.error("Invoice with ref_number not found:", refNumber);
+        return;
       }
-    } else {
-      console.error('No valid ref_number found.')
+  
+      const updatedWithholdings = [
+        ...existingInvoice.witholdings,
+        {
+          witholding_account_id: bankId,
+          name: selectedBank,
+          down_payment: amountPaid || 0,
+          witholding_percent: 0,
+          witholding_amount: 0,
+          status: 0,
+          trans_date: selectedDates,
+          id: 22,
+        },
+      ];
+  
+      const updatedInvoice = {
+        ...existingInvoice,
+        witholdings: updatedWithholdings,
+      };
+  
+      updatePosMutation.mutate(updatedInvoice as any);
+    } catch (error) {
+      console.error("Error saving payment:", error);
     }
-
-    // Membuat payload untuk pembayaran baru
-    const payload = {
-      amount: amountPaid || 0,
-      attachment: [],
-      bank_account_id: accountId || bankAccountId,
-      business_tran_id: langka,
-      witholding_amount: 0,
-      memo: memorandum,
-      trans_date: selectedDates,
-      witholdings: [],
-    }
-
-    saveNextPayment(payload)
-      .then((response: any) => {
-        console.log('Payment saved successfully:', response)
-        navigate(`/getnextpaymnet/${memorandum}`) // Navigasi setelah berhasil
-
-      })
-      .catch((error: any) => {
-        console.error('Error saving payment:', error)
-      })
-  }
-
+  };
+  
+  
+  
   const printNota = useRef<HTMLDivElement>(null)
 
   const printNotaHandler = useReactToPrint({
@@ -528,27 +550,7 @@ console.log({simpanSisaPiutrang})
     const name = getBankAccountName()
     setBankAccountName(name)
   }, [warehouseName, akunBanks])
-  const getBankAccountId = () => {
-    if (!akunBanks || !warehouseName) return null
 
-    const matchingBankAccount = akunBanks.find(
-      (bank: { name: any; id: any }) => {
-        const parts = bank.name.split('_')
-        return parts[1] === warehouseName
-      }
-    )
-    return matchingBankAccount ? matchingBankAccount.id : null
-  }
-  const matchingName = matchingTele?.name
-  useEffect(() => {
-    if (bankAccountName) {
-      setSelectedBank(bankAccountName)
-    }
-  }, [bankAccountName])
-  useEffect(() => {
-    const id = getBankAccountId()
-    setBankAccountId(id as any)
-  }, [warehouseName, akunBanks])
 
   const [refNumbers, setRefNumber] = useState('')
   const { voidInvoice, voidLoading, voidError, voidSuccess } = useVoidInvoice()
@@ -588,14 +590,14 @@ console.log({simpanSisaPiutrang})
           key="void"
           icon={<CloseCircleOutlined />}
           onClick={() => {
-            // voidInvoice()
-            handleVoid(null)
+            handleVoid(null);
           }}
-          disabled={voidLoading}
+          disabled={voidLoading || totalAmountRetur > 0} 
         >
           {voidLoading ? 'Proses Void...' : 'Void'}
         </Menu.Item>
       )}
+
 
       <Menu.Item
         key="retur"
@@ -603,6 +605,8 @@ console.log({simpanSisaPiutrang})
         onClick={() => {
           navigate(`/returninvoice/${ref_number}`)
         }}
+        disabled={totalAmountRetur > 0} 
+
       >
         Retur
       </Menu.Item>
@@ -613,6 +617,8 @@ console.log({simpanSisaPiutrang})
         onClick={() => {
           navigate(`/edittransaksi/${ref_number}`)
         }}
+        disabled={totalAmountRetur > 0} 
+
       >
         Edit
       </Menu.Item>
@@ -623,7 +629,8 @@ console.log({simpanSisaPiutrang})
           handleDelete()
           handleVoid(null)
         }}
-        disabled={hapusLoading}
+        disabled={hapusLoading || totalAmountRetur > 0} 
+
       >
         {hapusLoading ? 'Proses Penghapusan...' : 'hapus'}
       </Menu.Item>
@@ -634,7 +641,7 @@ console.log({simpanSisaPiutrang})
 
   const columns = [
     {
-      title: 'No',
+      title: 'Nu',
       key: 'no',
       align: 'center',
       render: (_: any, __: any, index: number) => (
@@ -677,7 +684,7 @@ console.log({simpanSisaPiutrang})
       ),
     },
     {
-      title: 'Diskon',
+      title: 'Diskont',
       dataIndex: 'discount_amount',
       key: 'discount_amount',
       align: 'left',
@@ -689,21 +696,21 @@ console.log({simpanSisaPiutrang})
         </div>
       ),
     },
-    {
-      title: 'Harga Diskon',
-      key: 'amountPerBaris',
-      align: 'left',
-      render: (record: any) => {
-        const amount = record.amount || 0
-        const qty = record.qty || 1 // Pastikan qty tidak nol
-        const amountPerBaris = qty > 0 ? amount / qty : 0
-        return (
-          <div style={{ textAlign: 'left' }}>
-            {roundUpIndonesianNumber(amountPerBaris)}
-          </div>
-        )
-      },
-    },
+    // {
+    //   title: 'Harga Diskon',
+    //   key: 'amountPerBaris',
+    //   align: 'left',
+    //   render: (record: any) => {
+    //     const amount = record.amount || 0
+    //     const qty = record.qty || 1 // Pastikan qty tidak nol
+    //     const amountPerBaris = qty > 0 ? amount / qty : 0
+    //     return (
+    //       <div style={{ textAlign: 'left' }}>
+    //         {roundUpIndonesianNumber(amountPerBaris)}
+    //       </div>
+    //     )
+    //   },
+    // },
 
     {
       title: 'Total',
@@ -716,6 +723,8 @@ console.log({simpanSisaPiutrang})
         </div>
       ),
     },
+    
+
   ]
   const [loading, setLoading] = useState(true)
 
@@ -751,7 +760,7 @@ console.log({simpanSisaPiutrang})
                 }
               })()}
             </Col>
-
+    
             <Dropdown
               overlay={menu}
               trigger={['click']}
@@ -800,31 +809,14 @@ console.log({simpanSisaPiutrang})
                 </>
               )}
             </Col>
-            {/* <Col>
-              {showButtons && (
-                <>
-                  <div>
-                    <button onClick={printNotaHandler}>Print Nota</button>
-                    <div style={{ display: 'none' }}>
-                      <Receipt ref={printNota} />
-                    </div>
-                  </div>
-
-                  <div>
-                    <button onClick={printSuratJalanHandler}>
-                      Print Surat Jalan
-                    </button>
-                    <div style={{ display: 'none' }}>
-                      <ReceiptJalan ref={printSuratJalan} />
-                    </div>
-                  </div>
-                </>
-              )}
-            </Col> */}
+           
           </Row>
         }
-        bordered
+        // bordered
       >
+                <span>
+  {ketVoid === 'void' && <span style={{ color: 'orange', fontWeight: 'bold', marginTop: '2px' }}>Void</span>}
+</span>
         <Row>
           <Col span={12}>
             <div style={{ marginBottom: '0px' }}>
@@ -884,13 +876,16 @@ console.log({simpanSisaPiutrang})
       <Table
         dataSource={[
           ...(getPosDetail?.items || []),
-          ...(getReturDetail?.items || []),
+          // ...(getReturDetail
+          //   ?.flatMap((retur: any) => retur.items || [])
+          //   .filter((item: any) => item.qty > 0) || []),
         ]}
         columns={columns as any}
         pagination={false}
         rowKey="_id"
         style={{ marginTop: '20px' }}
       />
+
 
       <div
         style={{
@@ -929,14 +924,29 @@ console.log({simpanSisaPiutrang})
                 <Text strong>{roundUpIndonesianNumber(amount)}</Text>
               </Col>
             </Row>
+            {totalAmountRetur > 0 && (
+              <Row style={{ marginTop: '8px' }}>
+                <Col span={12} style={{ textAlign: 'right' }}>
+                  <Text strong style={{ color: 'blue' }}>Total Retur</Text>
+                </Col>
+                <Col span={12} style={{ textAlign: 'right' }}>
+                  <Text strong style={{ color: 'blue' }}>
+                    {roundUpIndonesianNumber(totalAmountRetur)}
+                  </Text>
+                </Col>
+              </Row>
+            )}
+
+
             <Row style={{ marginTop: '8px' }}>
               <Col span={12} style={{ textAlign: 'right' }}>
                 <Title level={4}>Total</Title>
               </Col>
               <Col span={12} style={{ textAlign: 'right' }}>
-                <Title level={4}>{roundUpIndonesianNumber(amount)}</Title>
+                <Title level={4}>{roundUpIndonesianNumber(finalTotalAgterRetur)}</Title>
               </Col>
             </Row>
+
             <Divider style={{ margin: '16px 0' }} />
 
             <>
@@ -944,41 +954,43 @@ console.log({simpanSisaPiutrang})
                 .filter(
                   (witholding: any) =>
                     witholding.status === 0 && witholding.down_payment !== 0
-                ) // Tambahkan pengecekan down_payment !== 0
+                ) 
                 .map((witholding: any, index: number) => (
                   <Row key={index} style={{ marginTop: '8px' }}>
                     <Col span={12} style={{ textAlign: 'left' }}>
                       <a href={`/editpembayaran/${memorandum}`}>
-                        <Text strong>{witholding.name}</Text>
+                        <Text strong style={{ color: 'blue' }}
+                        >{witholding.name}</Text>
                       </a>
                     </Col>
                     <Col span={12} style={{ textAlign: 'right' }}>
-                      <Text strong>
+                      <Text strong 
+                      style={{ color: 'blue' }}>
                         {roundUpIndonesianNumber(witholding.down_payment)}
                       </Text>
                     </Col>
                   </Row>
                 ))}
             </>
-
+                  
             <Row style={{ marginTop: '8px' }}>
               <Col span={12} style={{ textAlign: 'right' }}>
                 <Text strong style={{ fontSize: '20px' }}>
-                  {' '}
                   Sisa Tagihan
                 </Text>
               </Col>
               <Col span={12} style={{ textAlign: 'right' }}>
                 <Text strong style={{ fontSize: '20px' }}>
-                  {' '}
-                  {roundUpIndonesianNumber(due)}
+                  {due <= 0 ? 0 : roundUpIndonesianNumber(due)}
                 </Text>
               </Col>
             </Row>
+
+
           </Col>
         </Row>
       </div>
-      {due !== 0 && (
+      {due != 0 && (
         <Card title="Pembayaran" style={{ marginTop: '20px' }}>
           <Form layout="vertical" onFinish={handleFormSubmit}>
             <Row gutter={16}>
@@ -1007,7 +1019,7 @@ console.log({simpanSisaPiutrang})
                   thousandSeparator="."
                   decimalSeparator=","
                   allowNegative={false}
-                  decimalScale={0}
+                  // decimalScale={0}
                   onValueChange={(values) => {
                     const { floatValue } = values
                     setAmountPaid(floatValue || 0)

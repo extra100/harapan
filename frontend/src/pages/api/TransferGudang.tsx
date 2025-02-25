@@ -70,13 +70,11 @@ const ProductStocksPage: React.FC = () => {
   const [warehouseTujuanId, setWarehouseTujuanId] = useState<string>('')
 
   const [dataSource, setDataSource] = useState<any[]>([])
-
+console.log({dataSource})
   const { idWarehouse } = useIdWarehouse()
-  console.log({ gudangs })
-  console.log({ warehouseTujuanId })
 
   const [warehouseName, setWarehouseName] = useState<string>('')
-  console.log({ warehouseName })
+
 
   useEffect(() => {
     if (gudangs && warehouseTujuanId) {
@@ -118,14 +116,22 @@ const ProductStocksPage: React.FC = () => {
       setWarehouseDariId(user.id_outlet)
     }
   }, [user])
+
+  //UNIT
   const [unitName, setUnitName] = useState<string>('')
+  const [sku, setSku] = useState<string>('')
+  console.log({sku })
+  
+
   const handleProductChange = (id: any, key: any) => {
     const selectedProduct = idaDataBarang?.find((product) => product.id === id)
-
     if (selectedProduct) {
       const productName = selectedProduct.name
       const unitName = selectedProduct.unit?.name || 'N/A'
+      const productSku = selectedProduct.code || 'N/A'
       setUnitName(unitName)
+      setSku(productSku)
+      console.log({productSku})
 
       setDataSource((prevDataSource) =>
         prevDataSource.map((row) =>
@@ -135,6 +141,7 @@ const ProductStocksPage: React.FC = () => {
                 id: id || '',
                 name: productName,
                 unit: unitName,
+                sku: productSku,
               }
             : row
         )
@@ -161,16 +168,7 @@ const ProductStocksPage: React.FC = () => {
     const productStock = stocks.find(
       (stock: any) => String(stock.id) === String(dataSource[key].id)
     )
-    // const qtyTujuanValue = productStock?.stocks?.[warehouseTujuanId]?.qty || 0
-
-    // if (value > qtyTujuanValue) {
-    //   message.warning(
-    //     'Jumlah transfer tidak boleh lebih besar dari stok tujuan.'
-    //   )
-    //   setIsSaveDisabled(true)
-    // } else {
-    //   setIsSaveDisabled(false)
-    // }
+ 
   }
 
   const addRow = () => {
@@ -237,7 +235,7 @@ const ProductStocksPage: React.FC = () => {
         >
           {idaDataBarang?.map((product) => (
             <Option key={product.id} value={product.id}>
-              {product.name}
+              {product.name} - {product.code}
             </Option>
           ))}
         </Select>
@@ -343,18 +341,17 @@ const ProductStocksPage: React.FC = () => {
     const fromWarehouseName = getWarehouseNameById(warehouseDariId)
     const toWarehouseName = getWarehouseNameById(warehouseTujuanId)
     const namaBarang = getProductName(productIdInput)
+  
     const transferData = {
       from_warehouse_id: warehouseDariId,
       to_warehouse_id: warehouseTujuanId,
-      // from_warehouse_name: fromWarehouseName,
-      // to_warehouse_name: toWarehouseName,
       eksekusi: '1',
       trans_date: selectedDates,
       id: 111,
       ref_number: refNumber,
       code: 1,
       memo: null,
-      items: dataSource.map((row) => ({
+      items: dataSource.map((row, index) => ({
         product_id: row.id || '',
         finance_account_id: row.id || '',
         product_name: row.name,
@@ -362,22 +359,23 @@ const ProductStocksPage: React.FC = () => {
         qty_minta: row.transferQty,
         before_qty_dari: qtyDari,
         before_qty_tujuan: qtyTujuan,
-        unit_name: unitName,
+        unit_name: row.unit, // Ambil dari row.unit
         code: 1,
         id: 222,
+        sku: row.sku, // Pastikan SKU diambil dari dataSource
       })),
     }
-
+  
     try {
       await addWarehouseTransfer(transferData as any)
       message.success('Data transfer berhasil disimpan!')
-      // navigate(`/listpindah`)
       navigate(`/transfer-detail/${refNumber}`)
     } catch (error) {
       message.error('Terjadi kesalahan saat menyimpan data transfer')
       console.error('Error:', error)
     }
   }
+  
   const [selectedDates, setSelectedDates] = useState<string>()
 
   const handleDateRangeSave = (startDate: string) => {

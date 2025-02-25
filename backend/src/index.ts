@@ -26,6 +26,8 @@ import warehouseRouter from './routers/warehousesRouter'
 import AmbilDetailBarangDariGoretRouter from './routers/AmbilDetailBarangDariGoretRouter'
 import barangTetukRouter from './routers/barangTetukRouter'
 import pelangganRouter from './routers/pelangganRouter'
+import penjualanKategoryRouter from './routers/penjualanKategoryRouter'
+import pembelianRouter from './routers/pembelianRouter'
 
 dotenv.config()
 const MONGODB_URI =
@@ -69,9 +71,11 @@ app.use('/api/contacts', contactRouter)
 app.use('/api/pelanggans', pelangganRouter)
 app.use('/api/barangs', barangRouter)
 app.use('/api/transactions', transactionRouter)
+app.use('/api/pembelians', pembelianRouter)
 app.use('/api/pps', ppRouter)
 app.use('/api/returns', returnRouter)
 app.use('/api/pindah', warehouseTransferRouter)
+app.use('/api/penjualankategory', penjualanKategoryRouter)
 
 app.use('/api/transaksipolosans', transaksiPolosanRouter)
 

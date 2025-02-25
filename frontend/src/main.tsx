@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import {
   createBrowserRouter,
   createRoutesFromElements,
+  Navigate,
   Route,
   RouterProvider,
 } from 'react-router-dom'
@@ -127,12 +128,38 @@ import PelangganTable from './pages/api/PelangganTabel'
 import TableWarehouse from './pages/api/WarehouseTable'
 import PelangganSearchPage from './pages/api/PelangganSearchPage'
 import CariBeda from './pages/api/CariBeda'
+import WarehouseStockManager from './pages/api/WarehouseStokManager'
+import KopiNota from './pages/api/KopiNota'
+import DownloadStok from './pages/AmbilDetailBarangKledo/DownloadStok'
+import PenjualanPemesanan from './pages/api/PenjualanPemesanan'
+import ListPenjualanPemesanan from './pages/api/ListPenjualanPemesanan'
+import EditPenjualanPemesanan from './pages/api/EditPenjualanPemesanan'
+import KopiPenjualan from './pages/api/KopiPenjualan'
+import AuditQty from './pages/api/AuditQty'
+import { SalesPerProductCategoryUI } from './pages/kategoribarang/ProductKategory'
+import TransactionFilter from './hooks/OmsertJenisHarga'
+import DiscountSummaryComponent from './hooks/DiscountSummaryComponent'
+import QtySummaryComponent from './hooks/QtySummaryComponent'
+import WarehouseStockTable from './pages/api/WarehouseStockTable'
+import CompareTransfers from './pages/api/CompareTransfers'
+import ResentFailedPo from './pages/api/ResentFailedPo'
+import RevalidatePindah from './pages/api/RevalidatePindah'
+import PembelianUI from './pages/api/PembelianUI'
+import ListPembelian from './pages/api/ListPembelian'
+import DetailPembelian from './pages/api/DetailPembelian'
+import WithholdingTable from './pages/api/WithholdingTables'
+
+
+
+
 
 // import MutasiSuratJalan from './pages/api/MutasiSuratJalan'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
+    <Route index element={<Navigate to="/printstokauditmanual" replace />} />
+
       <Route path="cart" element={<CartPage />} />
       <Route path="signin" element={<SigninPage />} />
       <Route path="signup" element={<SignupPage />} />
@@ -145,6 +172,7 @@ const router = createBrowserRouter(
         <Route path="/outlet" element={<OutletPage />} />
       </Route>
       <Route path="/ibo" element={<StokBarangPage />} />
+      <Route path="/buy" element={<PembelianUI />} />
       <Route path="/pemesananpenjualan" element={<PP />} />
       <Route path="/save" element={<SaveInvoiceComponent />} />
       <Route path="/saveMutasi" element={<SimpanMutasi />} />
@@ -163,6 +191,7 @@ const router = createBrowserRouter(
       <Route path="/simpanpelanggan" element={<BatchProcessPelangggans />} />
       <Route path="/po" element={<ProductStocksTable />} />
       <Route path="/langsungstok" element={<ListStok />} />
+      <Route path="/penjualanpemesanan" element={<PenjualanPemesanan />} />
       <Route path="/control" element={<ControlPage />} />
       <Route path="/mytable" element={<MyTablePage showTable={false} />} />{' '}
       {/* Bisa dikirim sebagai default */}
@@ -174,6 +203,8 @@ const router = createBrowserRouter(
       />
       <Route path="/fiac" element={<FinanceAccountDisplay />} />
       <Route path="/listkledo" element={<ListTransaksi />} />
+      <Route path="/listpembelian" element={<ListPembelian />} />
+      <Route path="/listpenjualanpemesanan" element={<ListPenjualanPemesanan />} />
       <Route
         path="/laporankelisttransaksi"
         element={<LaporanKeListTransaksi />}
@@ -206,6 +237,12 @@ const router = createBrowserRouter(
         element={<SaveReturDetailSourceKledo />}
       />
       <Route path="/detailkledo/:ref_number" element={<DetailKledo />} />
+      <Route path="/detailpembelian/:ref_number" element={<DetailPembelian />} />
+      {/* <Route path="/editpenjualanpemesanan/:ref_number" element={<EditPenjualanPemesanan />} /> */}
+      <Route path="/editpenjualanpemesanan/:ref_number" element={<EditPenjualanPemesanan />} />
+      <Route path="/kopipenjualan/:ref_number" element={<KopiPenjualan />} />
+
+      <Route path="/kopiinvoice/:ref_number" element={<KopiNota />} />
       {/* New Route for InvoiceTable */}
       <Route
         path="/detailpemesananpenjualan/:ref_number"
@@ -272,11 +309,16 @@ const router = createBrowserRouter(
         element={<ListSudahValidasiMasuk />}
       />
       <Route path="/validasi-pindah/:ref_number" element={<ValidatePindah />} />
+      <Route path="/ulangvalidasi/:ref_number" element={<RevalidatePindah />} />
       <Route path="/editmutasi/:ref_number" element={<EditMutasi />} />
       <Route path="/sudah-validasi/:ref_number" element={<SudahDivalidasi />} />
       <Route
         path="/ambildetailbarangdarikledo"
         element={<AmbilDetailBarangDariKledo />}
+      />
+      <Route
+        path="/downloadstok"
+        element={<DownloadStok />}
       />
       <Route
         path="/ambildetailbarangdariGoret"
@@ -288,6 +330,19 @@ const router = createBrowserRouter(
       <Route path="/tambahpelanggan" element={<PelangganSearchPage />} />
       <Route path="/tabeloutlets" element={<TableWarehouse />} />
       <Route path="/caribedainvoice" element={<CariBeda />} />
+      <Route path="/semuastokoutlet" element={<WarehouseStockManager />} />
+      <Route path="/auditqty" element={<AuditQty />} />
+      <Route path="/productkategori" element={<SalesPerProductCategoryUI />} />
+      <Route path="/omsetjenisharga" element={<TransactionFilter />} />
+      <Route path="/diskonsummary" element={<DiscountSummaryComponent />} />
+      <Route path="/qtysummary" element={<QtySummaryComponent />} />
+      <Route path="/printstokauditmanual" element={<WarehouseStockTable />} />
+      <Route path="/bandingkanpo" element={<CompareTransfers />} />
+      <Route path="/kirimulanggagalpo" element={<ResentFailedPo />} />
+      <Route path="/kasdanbank" element={<WithholdingTable />} />
+      
+      
+
     </Route>
   )
 )

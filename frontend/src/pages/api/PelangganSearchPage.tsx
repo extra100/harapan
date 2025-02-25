@@ -8,6 +8,7 @@ import {
   useGetPelanggansQueryDb,
 } from '../../hooks/pelangganHooks'
 import { searchBasedNamaPelanggan } from './SearchBasedNamaPelanggan'
+import { useAddContact } from '../../hooks/contactHooks'
 
 
 const { Title } = Typography
@@ -22,6 +23,7 @@ const PelangganSearchPage = () => {
     null
   )
   const { mutateAsync: addPelanggan, isLoading: isAdding } = useAddPelanggan()
+  const { mutateAsync: addContact, isLoading: isAddings } = useAddContact()
 
   const { data: pelanggans } = useGetPelanggansQueryDb()
 
@@ -60,6 +62,7 @@ const PelangganSearchPage = () => {
 
       try {
         await addPelanggan(selectedPelanggan)
+        await addContact(selectedPelanggan)
         setIsModalVisible(false)
         setSelectedPelanggan(null)
         message.success('Pelanggan berhasil disimpan!')

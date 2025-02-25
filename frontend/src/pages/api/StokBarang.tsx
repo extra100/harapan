@@ -26,7 +26,7 @@ export const useStokBarang = () => {
   const [dataStokBarang, setDataStokBarang] =
     useState<PropertyStokBarang | null>(null)
   const [loading, setLoading] = useState(false)
-
+console.log({dataStokBarang})
   const fetchStokBarang = useCallback(
     async (productId: string, warehouseId: number) => {
       setLoading(true)

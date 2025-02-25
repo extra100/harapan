@@ -30,6 +30,7 @@ import AmbilDetailBarangDariGoretRouter from './src/routers/AmbilDetailBarangDar
 import barangTetukRouter from './src/routers/barangTetukRouter'
 import pelangganRouter from './src/routers/pelangganRouter'
 import { controlRouter } from './src/routers/controlRouter'
+import pembelianRouter from './src/routers/pembelianRouter'
 
 dotenv.config()
 const MONGODB_URI =
@@ -74,6 +75,7 @@ app.use('/api/contacts', contactRouter)
 app.use('/api/pelanggans', pelangganRouter)
 app.use('/api/barangs', barangRouter)
 app.use('/api/transactions', transactionRouter)
+app.use('/api/pembelians', pembelianRouter)
 app.use('/api/pps', ppRouter)
 app.use('/api/returns', returnRouter)
 app.use('/api/pindah', warehouseTransferRouter)

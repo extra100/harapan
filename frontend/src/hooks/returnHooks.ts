@@ -26,13 +26,13 @@ export const useGetReturnssQuery = () =>
     queryFn: async () => (await apiClient.get<Return[]>(`/api/returns`)).data,
   })
 
-export const useGetReturnByIdQuery = (ref_number: string) =>
+export const useGetReturnByIdQuery = (memo: string) =>
   useQuery<Return[]>(
-    ['returns', ref_number],
+    ['returns', memo],
     async () => {
       try {
         const response = await apiClient.get<Return[]>(
-          `/api/returns/${ref_number}`
+          `/api/returns/${memo}`
         )
         return response.data
       } catch (error) {
@@ -40,7 +40,7 @@ export const useGetReturnByIdQuery = (ref_number: string) =>
       }
     },
     {
-      enabled: !!ref_number,
+      enabled: !!memo,
     }
   )
 

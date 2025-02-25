@@ -91,6 +91,100 @@ export const useGetWarehouseTransferByRefQuery = (ref_number: string) => {
     }
   )
 }
+export const useGetWarehouseTransferByWarehouseId = (idGudang?: number) =>
+  useQuery({
+    queryKey: ['pindah', idGudang],
+    queryFn: async () => {
+      if (idGudang === undefined) {
+        return [];
+      }
+      return (
+        await apiClient.get<WarehouseTransfer[]>(`/api/pindah/by-idGudang/${idGudang}`)
+      ).data;
+    },
+    enabled: idGudang !== undefined, // Fetch data only if contact_id is provided
+  });
+  export const useGetPindahBywWarehouseAndDate = (
+    warehouseId: any | null,
+    startDate: any | null,
+    endDate: any | null
+  ) =>
+    useQuery({
+      queryKey: ['pindah', warehouseId, startDate, endDate],
+      queryFn: async () => {
+        // Mengecek apakah parameter yang diperlukan ada
+        if (!warehouseId || !startDate || !endDate) {
+          console.log('No warehouseId, startDate, or endDate provided');
+          return [];
+        }
+  
+        console.log(
+          'Fetching pindah for warehouseId:',
+          warehouseId,
+          'from startDate:',
+          startDate,
+          'to endDate:',
+          endDate
+        );
+  
+        // Melakukan fetch data dengan params yang sesuai
+        try {
+          const response = await apiClient.get('/api/pindah/by-warehouseanddate', {
+            params: {
+              warehouseId: warehouseId,
+              startDate: startDate,
+              endDate: endDate,
+            },
+          });
+  
+          console.log('MOOOOOOOOOOOOOOVEE:', response.data);
+          return response.data;
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          return [];
+        }
+      },
+      enabled: !!warehouseId && !!startDate && !!endDate, // Hanya aktifkan jika parameter ada
+    });
+  
+
+    export const useGetPindahByWarehouseAndDate = (warehouseId: any, startDate: any, endDate: any) => {
+      return useQuery(
+        ['pindah', warehouseId, startDate, endDate], // Query key, dengan warehouseId, startDate, dan endDate
+        async () => {
+          // Pastikan jika ada parameter yang kosong, kita hentikan query ini
+          if (!warehouseId || !startDate || !endDate) {
+            console.log('No warehouseId, startDate, or endDate provided');
+            return []; // Tidak melanjutkan query jika parameter tidak lengkap
+          }
+    
+          console.log(
+            'Fetching pindah for warehouseId:',
+            warehouseId,
+            'from startDate:',
+            startDate,
+            'to endDate:',
+            endDate
+          );
+    
+          // Melakukan request API dengan query parameters
+          const response = await apiClient.get('/api/pindah/by-warehouseanddate', {
+            params: {
+              warehouseId: warehouseId,
+              startDate: startDate,
+              endDate: endDate,
+            },
+          });
+    
+          console.log('PINDAAAAAAAAAAAAAAAAAAAAAAAAAAAH:', response.data); // Mengecek data yang diterima dari API
+    
+          return response.data;
+        },
+        {
+          enabled: !!warehouseId && !!startDate && !!endDate, // Pastikan query hanya diaktifkan jika parameter valid
+        }
+      );
+    };
 export const useUpdateWarehouseTransferMutation = () => {
   const queryClient = useQueryClient()
 

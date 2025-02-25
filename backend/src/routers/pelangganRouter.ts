@@ -50,8 +50,6 @@ pelangganRouter.get(
         id: numericcontactId,
       })
 
-      // Cetak hasil ke console
-      console.log('Hasil query Pelanggan:', { pelanggans })
 
       // Mengembalikan hasil
       res.json(pelanggans)

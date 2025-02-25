@@ -5,34 +5,301 @@ import { TransactionModel } from '../models/transactionModel'
 
 export const transactionRouter = express.Router()
 import dayjs from 'dayjs'
+transactionRouter.get(
+  '/discount-summary',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { start_date, end_date } = req.query;
 
+    const matchStage: any = {
+      reason_id: "unvoid", // ✅ Filter reason_id langsung dari transaksi
+    };
+
+    if (start_date && end_date) {
+      matchStage.trans_date = {
+        $gte: start_date,
+        $lte: end_date,
+      };
+    }
+
+    const discountSummary = await TransactionModel.aggregate([
+      { $match: matchStage }, // ✅ Filter hanya transaksi dengan reason_id "unvoid"
+      { $unwind: "$items" }, // Membuka array items
+      {
+        $group: {
+          _id: {
+            warehouse_id: "$warehouse_id",
+            discount_percent: "$items.discount_percent",
+          },
+          total_discount_amount: { $sum: "$items.discount_amount" },
+          invoice_ids: { $addToSet: "$_id" }, // Mengumpulkan transaksi unik (nota)
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          warehouse_id: "$_id.warehouse_id",
+          discount_percent: "$_id.discount_percent",
+          total_discount_amount: 1,
+          invoice_count: { $size: "$invoice_ids" }, // Menghitung jumlah nota unik
+        },
+      },
+      { $sort: { warehouse_id: 1, discount_percent: 1 } },
+    ]);
+
+    res.json(discountSummary);
+  })
+);
+
+transactionRouter.get(
+  '/qty-summary',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { start_date, end_date } = req.query;
+
+    const matchStage: any = {
+      reason_id: "unvoid", // ✅ Filter reason_id langsung dari transaksi
+    };
+
+    if (start_date && end_date) {
+      matchStage.trans_date = {
+        $gte: start_date,
+        $lte: end_date,
+      };
+    }
+
+    const discountSummary = await TransactionModel.aggregate([
+      { $match: matchStage }, // ✅ Filter hanya transaksi dengan reason_id "unvoid"
+      { $unwind: "$items" }, // Membuka array items
+      {
+        $group: {
+          _id: {
+            warehouse_id: "$warehouse_id",
+            finance_account_id: "$items.finance_account_id",
+          },
+          total_qty: { $sum: "$items.qty" },
+          invoice_ids: { $addToSet: "$_id" }, // Mengumpulkan transaksi unik (nota)
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          warehouse_id: "$_id.warehouse_id",
+          qty: "$_id.qty",
+          finance_account_id: "$_id.finance_account_id",
+          total_qty: 1,
+        },
+      },
+      { $sort: { warehouse_id: 1, qty: 1 } },
+    ]);
+
+    res.json(discountSummary);
+  })
+);
 // transactionRouter.get(
-//   '/',
+//   "/qty-summary",
 //   asyncHandler(async (req: Request, res: Response) => {
-//     const { date_from, date_to, warehouse_id } = req.query
+//     const { start_date, end_date } = req.query;
 
-//     const conditions: any = {}
+//     const matchStage: any = {
+//       reason_id: "unvoid",
+//     };
 
-//     if (date_from && date_to) {
-//       conditions.trans_date = date_from
-//       console.log('Date condition:', conditions.trans_date)
+//     if (start_date && end_date) {
+//       matchStage.trans_date = {
+//         $gte: new Date(start_date as string),
+//         $lte: new Date(end_date as string),
+//       };
 //     }
 
-//     if (warehouse_id) {
-//       conditions.warehouse_id = Number(warehouse_id)
-//       console.log('Warehouse condition:', conditions.warehouse_id)
-//     }
+//     const qtySummary = await TransactionModel.aggregate([
+//       { $match: matchStage }, // Filter transaksi dengan reason_id "unvoid"
+//       { $unwind: "$items" }, // Membuka array items
+//       {
+//         $group: {
+//           _id: "$items.name", // Grouping berdasarkan name
+//           total_qty: { $sum: "$items.qty" }, // Menjumlahkan qty
+//         },
+//       },
+//       {
+//         $project: {
+//           _id: 0,
+//           name: "$_id",
+//           total_qty: 1,
+//         },
+//       },
+//       { $sort: { total_qty: -1 } }, // Mengurutkan berdasarkan total qty (descending)
+//     ]);
 
-//     const transactions = await TransactionModel.find(conditions)
-
-//     res.json(transactions)
+//     res.json(qtySummary);
 //   })
-// )
+// );
+
+transactionRouter.get(
+  '/',
+  asyncHandler(async (req: any, res: any) => {
+    const { warehouseId, startDate, endDate } = req.query
+
+    if (!warehouseId || isNaN(Number(warehouseId))) {
+      return res.status(400).json({ message: 'Invalid warehouseId' })
+    }
+
+    try {
+      const numericWarehouseId = Number(warehouseId)
+      const todayDate = dayjs().format('YYYY-MM-DD')
+      const formattedStartDate = startDate
+        ? dayjs(startDate).format('YYYY-MM-DD')
+        : todayDate
+      const formattedEndDate = endDate
+        ? dayjs(endDate).format('YYYY-MM-DD')
+        : todayDate
+
+      // Validasi range tanggal
+      if (formattedStartDate > formattedEndDate) {
+        return res.status(400).json({ message: 'Invalid date range' })
+      }
+
+      // Query berdasarkan rentang tanggal
+      let transactions
+      const dateFilter = {
+        trans_date: {
+          $gte: formattedStartDate,
+          $lte: formattedEndDate,
+        },
+      }
+
+      if (numericWarehouseId === 2) {
+        transactions = await TransactionModel.find(dateFilter)
+      } else {
+        transactions = await TransactionModel.find({
+          warehouse_id: numericWarehouseId,
+          ...dateFilter,
+        })
+      }
+
+      res.json(transactions)
+    } catch (error) {
+      console.error('Error querying transactions:', error)
+      res.status(500).json({ message: 'Server error occurred.' })
+    }
+  })
+)
+transactionRouter.get(
+  '/by-contact/:contact_id',
+  asyncHandler(async (req: any, res: any) => {
+    const contact_id = parseInt(req.params.contact_id, 10);
+    if (isNaN(contact_id)) {
+      return res.status(400).json({ message: 'Invalid contact_id' });
+    }
+
+    const posData = await TransactionModel.find({ contact_id: contact_id });
+
+    if (posData && posData.length > 0) {
+      res.json(posData);
+    } else {
+      res.status(404).json({ message: 'Transactions not found' });
+    }
+  })
+);
+// transactionRouter.get(
+//   '/by-idBarang/:idBarang',
+//   asyncHandler(async (req: any, res: any) => {
+//     const idBarang = parseInt(req.params.idBarang, 10); // Correctly access `idBarang`
+//     if (isNaN(idBarang)) {
+//       return res.status(400).json({ message: 'Invalid idBarang' });
+//     }
+
+//     // Query transactions where any item's `finance_account_id` matches `idBarang`
+//     const posData = await TransactionModel.find({
+//       'items.finance_account_id': idBarang,
+//     });
+
+//     if (posData && posData.length > 0) {
+//       res.json(posData);
+//     } else {
+//       res.status(404).json({ message: 'Transactions not found' });
+//     }
+//   })
+// );
+transactionRouter.get(
+  '/by-name/:name',
+  asyncHandler(async (req: any, res: any) => {
+    const name = decodeURIComponent(req.params.name);
+    console.log('Received name:', name);
+
+    if (!name) {
+      return res.status(400).json({ message: 'Invalid name' });
+    }
+
+    try {
+      const posData = await TransactionModel.find({
+        'items.name': name,
+      });
+
+      console.log('Query result:', posData);
+
+      if (posData && posData.length > 0) {
+        res.json(posData);
+      } else {
+        res.status(404).json({ message: 'Transactions not found' });
+      }
+    } catch (error) {
+      console.error('Error querying database:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  })
+);
+
+transactionRouter.get(
+  '/filter',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { trans_date, warehouse_id, contact_id } = req.query;
+    
+    const filter: any = {};
+    
+    if (trans_date) {
+      filter.trans_date = trans_date;
+    }
+    if (warehouse_id) {
+      filter.warehouse_id = Number(warehouse_id);
+    }
+    if (contact_id) {
+      filter.contact_id = Number(contact_id);
+    }
+    
+    const transactions = await TransactionModel.find(filter);
+    res.json(transactions);
+  })
+);
+
+transactionRouter.get(
+  '/:ref_number',
+  asyncHandler(async (req: Request, res: Response) => {
+    const posData = await TransactionModel.find({
+      ref_number: req.params.ref_number,
+    })
+    if (posData && posData.length > 0) {
+      res.json(posData)
+    } else {
+      const posById = await TransactionModel.findById(req.params.ref_number)
+      if (posById) {
+        res.json(posById)
+      } else {
+        res.status(404).json({ message: 'Pos not found' })
+      }
+    }
+  })
+)
 
 transactionRouter.post(
   '/',
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: any, res: any) => {
     const posData = req.body
+
+    // Cek apakah sudah ada transaksi dengan memo yang sama
+    const existingTransaction = await TransactionModel.findOne({ memo: posData.memo })
+
+    if (existingTransaction) {
+      return res.status(400).json({ message: 'Transaksi dengan memo yang sama sudah ada!' })
+    }
 
     const justPos = await TransactionModel.create(posData)
     res.status(201).json(justPos)
@@ -156,13 +423,10 @@ transactionRouter.get(
       const formattedEndDate = endDate
         ? dayjs(endDate).format('YYYY-MM-DD')
         : todayDate
-
-      // Validasi range tanggal
       if (formattedStartDate > formattedEndDate) {
         return res.status(400).json({ message: 'Invalid date range' })
       }
 
-      // Query berdasarkan rentang tanggal
       let transactions
       const dateFilter = {
         trans_date: {
@@ -188,24 +452,7 @@ transactionRouter.get(
   })
 )
 
-transactionRouter.get(
-  '/:ref_number',
-  asyncHandler(async (req: Request, res: Response) => {
-    const posData = await TransactionModel.find({
-      ref_number: req.params.ref_number,
-    })
-    if (posData && posData.length > 0) {
-      res.json(posData)
-    } else {
-      const posById = await TransactionModel.findById(req.params.ref_number)
-      if (posById) {
-        res.json(posById)
-      } else {
-        res.status(404).json({ message: 'Pos not found' })
-      }
-    }
-  })
-)
+
 
 transactionRouter.put(
   '/by-id/:ref_number',
@@ -428,7 +675,7 @@ transactionRouter.put(
 transactionRouter.put(
   '/full-update/:ref_number',
   asyncHandler(async (req: any, res: any) => {
-    let transaction = await TransactionModel.findOne({
+    const transaction = await TransactionModel.findOne({
       ref_number: req.params.ref_number,
     })
 
@@ -639,67 +886,54 @@ transactionRouter.put(
   })
 )
 
-// // transactionRouter.delete(
-// //   '/:idol',
-// //   asyncHandler(async (req, res) => {
-// //     const teneDwang = await TransactionModel.findByIdAndDelete(req.params.idol)
-// //     if (teneDwang) {
-// //       res.json({ message: 'Pos deleted successfully' })
-// //     } else {
-// //       res.status(404).json({ message: 'Pos Not Found' })
-// //     }
-// //   })
-// // )
 
-// transactionRouter.delete(
-//   '/:ref_number/witholdings/:witholdingId',
-//   asyncHandler(async (req: Request, res: Response) => {
-//     const { ref_number, witholdingId } = req.params
+transactionRouter.get(
+  "/withholding-summary",
+  asyncHandler(async (req: any, res: any) => {
+    console.log("Query params:", req.query); // ✅ Debugging
 
-//     const transaction = await TransactionModel.findOne({ ref_number })
+    const { start_date, end_date } = req.query;
+    if (!start_date || !end_date) {
+      return res.status(400).json({ message: "Tanggal harus diisi" });
+    }
 
-//     if (transaction) {
-//       transaction.witholdings = transaction.witholdings.filter(
-//         (witholding: any) => witholding._id.toString() !== witholdingId
-//       )
+    const startDate = new Date(start_date as string);
+    const endDate = new Date(end_date as string);
 
-//       await transaction.save()
-//       res.json({ message: 'Witholding removed successfully' })
-//     } else {
-//       res.status(404).json({ message: 'Transaction not found' })
-//     }
-//   })
-// )
-// transactionRouter.patch(
-//   '/:ref_number/witholding/:witholdingId',
-//   asyncHandler(async (req: any, res: any) => {
-//     const { ref_number, witholdingId } = req.params
-//     const { status } = req.body
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return res.status(400).json({ message: "Format tanggal tidak valid" });
+    }
 
-//     const transaction = await TransactionModel.findOne({
-//       ref_number,
-//       'witholdings._id': witholdingId,
-//     })
+    try {
+      const withholdingSummary = await TransactionModel.aggregate([
+        {
+          $match: {
+            trans_date: {
+              $gte: startDate,
+              $lte: endDate,
+            },
+          },
+        },
+        { $unwind: "$withholdings" },
+        {
+          $group: {
+            _id: "$withholdings.withholding_account_id",
+            total_withholding: { $sum: "$withholdings.withholding_amount" },
+          },
+        },
+      ]);
 
-//     if (!transaction) {
-//       return res
-//         .status(404)
-//         .json({ message: 'Transaction or witholding not found' })
-//     }
+      console.log("MongoDB Withholding Summary:", withholdingSummary); // ✅ Debug log
 
-//     const withholding = transaction.witholdings.find(
-//       (witholding: any) => witholding._id.toString() === witholdingId
-//     )
+      if (!withholdingSummary || withholdingSummary.length === 0) {
+        return res.status(404).json({ message: "Data withholding tidak ditemukan" });
+      }
 
-//     if (!withholding) {
-//       return res.status(404).json({ message: 'Withholding not found' })
-//     }
+      res.json(withholdingSummary);
+    } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({ message: "Terjadi kesalahan server" });
+    }
+  })
+);
 
-//     withholding.status = status // Update the percent
-
-//     await transaction.save()
-//     res.status(200).json({ message: 'Withholding updated successfully' })
-//   })
-// )
-
-// export default transactionRouter

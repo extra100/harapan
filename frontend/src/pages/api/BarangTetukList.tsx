@@ -42,6 +42,11 @@ const BarangTetuk = () => {
       key: 'price',
     },
     {
+      title: 'Hpp',
+      dataIndex: 'hpp',
+      key: 'hpp',
+    },
+    {
       title: 'Kode SKU',
       dataIndex: 'code',
       key: 'code',

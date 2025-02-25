@@ -89,6 +89,16 @@ const ReceiptJalan = forwardRef<HTMLDivElement>((props, ref) => {
         return inv && item ? `Qt${item.qty_update}` : 'Qt'
       },
     },
+    // {
+    //   title: 'No',
+    //   key: 'qty_update',
+    //   render: (text: any, record: any) => {
+    //     const barang = barangStok?.find(
+    //       (barang: any) => barang.id === record.finance_account_id
+    //     )
+    //     return barang ? `Qt${barang.qty}` : ''
+    //   },
+    // },
     {
       title: 'Barang',
       dataIndex: 'name',

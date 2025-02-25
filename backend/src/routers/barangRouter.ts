@@ -33,26 +33,25 @@ barangRouter.post(
   })
 )
 barangRouter.put(
-  '/:edi',
+  "/:edi",
   asyncHandler(async (req: Request, res: Response) => {
-    const { _id, id, name, code, price, pos_product_category_id } = req.body
+    console.log("📩 Request Diterima:", req.body);
 
-    const cumaDisiniUsaha = await BarangModel.findById(req.params.edi)
+    const { _id, id, name, code, price, pos_product_category_id, qty } = req.body;
+    const cumaDisiniUsaha = await BarangModel.findById(req.params.edi);
 
     if (cumaDisiniUsaha) {
-      cumaDisiniUsaha._id = _id || cumaDisiniUsaha._id
+      console.log("🔍 Barang Ditemukan:", cumaDisiniUsaha);
 
-      cumaDisiniUsaha.id = id || cumaDisiniUsaha.id
-      cumaDisiniUsaha.name = name || cumaDisiniUsaha.name
-      cumaDisiniUsaha.code = code || cumaDisiniUsaha.code
-      cumaDisiniUsaha.price = price || cumaDisiniUsaha.price
-      cumaDisiniUsaha.pos_product_category_id =
-        pos_product_category_id || cumaDisiniUsaha.pos_product_category_id
+      cumaDisiniUsaha.qty = qty || cumaDisiniUsaha.qty;
+      const updateBarang = await cumaDisiniUsaha.save();
 
-      const updateBarang = await cumaDisiniUsaha.save()
-      res.json(updateBarang)
+      console.log("✅ Barang Berhasil Diperbarui:", updateBarang);
+      res.json(updateBarang);
     } else {
-      res.status(404).json({ message: 'Usaha not found' })
+      console.log("❌ Barang Tidak Ditemukan!");
+      res.status(404).json({ message: "Usaha not found" });
     }
   })
-)
+);
+

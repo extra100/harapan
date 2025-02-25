@@ -37,6 +37,7 @@ export type Transaction = {
     discount_amount: number
     unit_id: number
     id: number
+    pos_product_category_id: number
   }[]
 
   contacts: {

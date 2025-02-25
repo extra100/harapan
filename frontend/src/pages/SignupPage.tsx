@@ -11,6 +11,7 @@ import { getError } from '../utils'
 
 export default function SignupPage() {
   const { data: outletsData } = useGetoutletsQuery()
+  console.log({outletsData})
 
   const navigate = useNavigate()
   const { search } = useLocation()
@@ -22,6 +23,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [id_outlet, setIdOutlet] = useState('') // Add this line
+
   console.log({ id_outlet })
   const { state, dispatch } = useContext(Store)
   const { userInfo } = state
@@ -78,18 +80,22 @@ export default function SignupPage() {
         </Form.Group>
         <Form.Group className="mb-3" controlId="id_outlet">
           <Form.Label>Outlet</Form.Label>
-          <Form.Control
-            as="select"
-            onChange={(e) => setIdOutlet(e.target.value)}
-            required
-          >
+       <Form.Control
+  as="select"
+  onChange={(e) => {
+    setIdOutlet(e.target.value);
+    console.log("Selected Outlet:", e.target.value);
+  }}
+  required
+>
+
             <option value="" disabled>
               Select Outlet
             </option>
             {outletsData &&
               outletsData.map((outlet) => (
                 <option key={outlet.id_outlet} value={outlet.id_outlet}>
-                  {outlet.nama_outlet}
+                  {outlet.id_outlet}
                 </option>
               ))}
           </Form.Control>

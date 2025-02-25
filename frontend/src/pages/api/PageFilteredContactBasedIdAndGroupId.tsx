@@ -46,9 +46,8 @@ const FilteredContact: React.FC = () => {
         )?.group?.id ?? null
       : null
   )
-  console.log({ selectedContactGroup })
   const { idContact } = useIdContact(selectedContactGroup)
-  console.log({ idContact })
+ 
 
   const [filteredContacts, setFilteredContacts] = useState<any[]>([])
 
@@ -59,7 +58,7 @@ const FilteredContact: React.FC = () => {
 
   useEffect(() => {
     let contactsToDisplay = idContact || []
-
+  
     if (selectedContactGroup) {
       contactsToDisplay = contactsToDisplay.filter(
         (contact: any) =>
@@ -67,25 +66,24 @@ const FilteredContact: React.FC = () => {
           parseFloat(contact.receivable) !== 0
       )
     }
-
+  
     if (searchName) {
       contactsToDisplay = contactsToDisplay.filter((contact: any) =>
         contact.name.toLowerCase().includes(searchName.toLowerCase())
       )
     }
-
+  
+    // Sort contacts by receivable in descending order
+    contactsToDisplay = contactsToDisplay.sort(
+      (a: any, b: any) => b.receivable - a.receivable
+    )
+  
     setFilteredContacts(contactsToDisplay)
   }, [selectedContactGroup, idContact, searchName])
-  const { loading, takedueanContactStatusIdandMemoMny } =
-    TakePiutangToPerContactStatusIdAndMemoMny(
-      'MNY',
-      '2',
-      selectedContactGroup as any
-    )
-
+  
   const columns = [
     {
-      title: 'Group Id Pelanggan',
+      title: 'Nama Outlet',
       dataIndex: 'group_name',
       key: 'group_name',
     },
@@ -166,38 +164,40 @@ const FilteredContact: React.FC = () => {
       </Row>
 
       <Table
-        dataSource={filteredContacts.map((contact) => ({
-          key: contact.id,
-          id: contact.id,
-          name: contact.name,
-          group_name: contact.group_name,
-          receivable: contact.receivable,
-        }))}
-        columns={columns}
-        rowKey="id"
-        summary={(pageData) => {
-          let totalAmount = 0
+  dataSource={filteredContacts.map((contact) => ({
+    key: contact.id,
+    id: contact.id,
+    name: contact.name,
+    group_name: contact.group_name,
+    receivable: contact.receivable,
+  }))}
+  columns={columns}
+  rowKey="id"
+  pagination={{ pageSize: 100 }} // Tambahkan pagination dengan pageSize 100
+  summary={(pageData) => {
+    let totalAmount = 0
 
-          pageData.forEach(({ receivable: amount }) => {
-            totalAmount += Number(amount)
-          })
+    pageData.forEach(({ receivable: amount }) => {
+      totalAmount += Number(amount)
+    })
 
-          return (
-            <Table.Summary.Row>
-              <Table.Summary.Cell index={0} colSpan={2}>
-                <div style={{ textAlign: 'left' }}>
-                  <strong>Total</strong>
-                </div>
-              </Table.Summary.Cell>
-              <Table.Summary.Cell index={0} colSpan={2}>
-                <div style={{ textAlign: 'right' }}>
-                  <strong>{`${totalAmount.toLocaleString()}`}</strong>
-                </div>
-              </Table.Summary.Cell>
-            </Table.Summary.Row>
-          )
-        }}
-      />
+    return (
+      <Table.Summary.Row>
+        <Table.Summary.Cell index={0} colSpan={2}>
+          <div style={{ textAlign: 'left' }}>
+            <strong>Total</strong>
+          </div>
+        </Table.Summary.Cell>
+        <Table.Summary.Cell index={0} colSpan={2}>
+          <div style={{ textAlign: 'right' }}>
+            <strong>{`${totalAmount.toLocaleString()}`}</strong>
+          </div>
+        </Table.Summary.Cell>
+      </Table.Summary.Row>
+    )
+  }}
+/>
+
     </div>
   )
 }

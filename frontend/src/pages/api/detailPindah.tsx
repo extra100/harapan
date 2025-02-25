@@ -184,6 +184,15 @@ const WarehouseTransferDetail: React.FC = () => {
       ),
     },
     {
+      title: 'SKU',
+      dataIndex: 'sku',
+      key: 'sku',
+      align: 'center',
+      render: (text: string) => (
+        <div style={{ textAlign: 'center' }}>{text}</div>
+      ),
+    },
+    {
       title: 'Qty',
       dataIndex: 'qty_minta',
       key: 'qty_minta',

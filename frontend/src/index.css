@@ -10,6 +10,9 @@
     Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   margin-bottom: 1px;
 }
+.yellow-row {
+  background-color: yellow !important;
+}
 @media print {
   body {
     width: 210mm;
@@ -54,6 +57,27 @@
     display: none;
   }
 }
+.no-padding {
+  padding: 10px 0 !important; /* Padding atas & bawah */
+  text-align: right;
+}
+
+.ant-table-thead > tr > th {
+  padding: 10px 6px !important; /* Padding header */
+  text-align: center !important; /* Header rata tengah */
+  background-color: orange !important; /* Warna background header */
+  color: white !important; /* Warna teks biar kontras */
+}
+
+.ant-table-tbody > tr > td {
+  padding: 10px 10px !important; /* Padding isi tabel */
+  text-align: right !important; /* Isi tabel rata tengah */
+}
+
+.no-padding-summary {
+  padding: 10px 6px !important;
+}
+
 
 .row-different-total {
   background-color: red !important;

@@ -7,4 +7,5 @@ export type Warehouse = {
   telpon: string
   _id: string
   platform: string
+  singkatan: string
 }

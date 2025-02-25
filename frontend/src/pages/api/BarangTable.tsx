@@ -107,7 +107,7 @@ const BarangTable: React.FC = () => {
                 value={barang.id.toString()}
                 label={`${barang.id} - ${barang.name}`}
               >
-                {barang.id} - {barang.name} - {barang.price}
+                {barang.id} - {barang.name} - {barang.price} - {barang.code}
               </Option>
             ))}
         </Select>

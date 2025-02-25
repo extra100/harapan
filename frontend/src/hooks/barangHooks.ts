@@ -32,10 +32,9 @@ export const useAddBarangMutation = () => {
 }
 export const useUpdateBarangMutation = () => {
   const queryClient = useQueryClient()
-
   return useMutation(
     (murah: Barang) =>
-      apiClient.put<Barang>(`/api/barangs/${murah._id}`, murah), // gunakan _id
+      apiClient.put<Barang>(`/api/barangs/${murah._id}`, murah), 
     {
       onSuccess: () => {
         queryClient.invalidateQueries(['barangs'])

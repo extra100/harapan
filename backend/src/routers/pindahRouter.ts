@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler'
 import { WarehouseTransferModel } from '../models/pindahModel'
 import express, { Request, Response } from 'express'
+import dayjs from 'dayjs'
 
 export const warehouseTransferRouter = express.Router()
 warehouseTransferRouter.get(
@@ -44,6 +45,66 @@ warehouseTransferRouter.post(
     }
   })
 )
+warehouseTransferRouter.get(
+  '/by-warehouseanddate',
+  asyncHandler(async (req: any, res: any) => {
+    const { warehouseId, startDate, endDate } = req.query;
+
+    console.log('Request received with parameters:', { warehouseId, startDate, endDate }); // Log parameter yang diterima
+
+    if (!warehouseId || isNaN(Number(warehouseId))) {
+      return res.status(400).json({ message: 'Invalid warehouseId' });
+    }
+
+    try {
+      const numericWarehouseId = Number(warehouseId);
+
+      // Format tanggal
+      const todayDate = dayjs().format('YYYY-MM-DD');
+      const formattedStartDate = startDate
+        ? dayjs(startDate).format('YYYY-MM-DD')
+        : todayDate;
+      const formattedEndDate = endDate
+        ? dayjs(endDate).format('YYYY-MM-DD')
+        : todayDate;
+
+      console.log('Formatted Dates:', { formattedStartDate, formattedEndDate }); // Log tanggal yang telah diformat
+
+      if (formattedStartDate > formattedEndDate) {
+        return res.status(400).json({ message: 'Invalid date range' });
+      }
+
+      let transactions;
+      const dateFilter = {
+        trans_date: {
+          $gte: formattedStartDate,
+          $lte: formattedEndDate,
+        },
+      };
+
+      console.log('Date filter applied:', dateFilter); // Log filter tanggal yang digunakan di query
+
+      if (numericWarehouseId === 2) {
+        transactions = await WarehouseTransferModel.find(dateFilter);
+      } else {
+        transactions = await WarehouseTransferModel.find({
+          from_warehouse_id: numericWarehouseId,
+          ...dateFilter,
+        });
+      }
+
+      console.log('Transactions found:', transactions); // Log transaksi yang ditemukan
+      console.log('Received parameters:', { warehouseId, startDate, endDate });
+      console.log('Formatted Dates:', { formattedStartDate, formattedEndDate });
+      console.log('Query filter:', dateFilter);
+      
+      res.json(transactions);
+    } catch (error) {
+      console.error('Error querying transactions:', error);
+      res.status(500).json({ message: 'Server error occurred.' });
+    }
+  })
+);
 
 warehouseTransferRouter.get(
   '/',
@@ -78,44 +139,127 @@ warehouseTransferRouter.get(
     }
   })
 )
+warehouseTransferRouter.get(
+  '/by-idGudang/:idGudang',
+  asyncHandler(async (req: any, res: any) => {
+    const idGudang = parseInt(req.params.idGudang); // Match parameter name
+    if (isNaN(idGudang)) {
+      return res.status(400).json({ message: 'Invalid idGudang' });
+    }
 
-// warehouseTransferRouter.put(
-//   '/by-id/:ref_number',
-//   asyncHandler(async (req: any, res: any) => {
-//     const mutation = await WarehouseTransferModel.findOne({
-//       ref_number: req.params.ref_number,
-//     })
+    const posData = await WarehouseTransferModel.find({ to_warehouse_id: idGudang });
 
-//     if (!mutation) {
-//       return res.status(404).json({ message: 'Mutasi Tak Ditemukan' })
-//     }
 
-//     if (req.body.id) {
-//       mutation.id = req.body.id
-//     }
+    if (posData && posData.length > 0) {
+      res.json(posData);
+    } else {
+      res.status(404).json({ message: 'Gudang not found' });
+    }
+  })
+);
 
-//     if (Array.isArray(req.body.items) && req.body.items.length > 0) {
-//       mutation.items = mutation.items.map((item) => {
-//         // cocokan payload kence database
-//         const updatedItem = req.body.items.find(
-//           (i: any) => i.finance_account_id === item.finance_account_id
-//         )
 
-//         if (updatedItem) {
-//           // update isi items isik data bru
-//           return { ...item, id: updatedItem.id }
-//         }
+warehouseTransferRouter.get(
+  '/by-warehouseanddate',
+  asyncHandler(async (req: any, res: any) => {
+    console.log('Handler executed'); // Log tambahan
 
-//         return item
-//       })
+    const { warehouseId, startDate, endDate } = req.query;
 
-//       // Simpan jok database
-//       const updatedMutation = await mutation.save()
+    if (!warehouseId || isNaN(Number(warehouseId))) {
+      console.log('Invalid warehouseId:', warehouseId); // Log tambahan
+      return res.status(400).json({ message: 'Invalid warehouseId' });
+    }
 
-//       res.json(updatedMutation)
-//     }
-//   })
-// )
+    try {
+      const numericWarehouseId = Number(warehouseId);
+
+      // Use today's date if no startDate or endDate are provided
+      const todayDate = dayjs().format('YYYY-MM-DD');
+      const formattedStartDate = startDate
+        ? dayjs(startDate).format('YYYY-MM-DD')
+        : todayDate;
+      const formattedEndDate = endDate
+        ? dayjs(endDate).format('YYYY-MM-DD')
+        : todayDate;
+
+      // Ensure valid date range
+      if (formattedStartDate > formattedEndDate) {
+        console.log('Invalid date range'); // Log tambahan
+        return res.status(400).json({ message: 'Invalid date range' });
+      }
+
+      // Set up the date range filter for the query
+      const dateFilter = {
+        trans_date: {
+          $gte: formattedStartDate,
+          $lte: formattedEndDate,
+        },
+      };
+
+      let pindah;
+      // If the warehouseId is 2, get the first matching record (you can modify if needed)
+      if (numericWarehouseId === 2) {
+        pindah = await WarehouseTransferModel.find(dateFilter);
+      } else {
+        // If not, find records where the `to_warehouse_id` matches and the date filter applies
+        pindah = await WarehouseTransferModel.find({
+          from_warehouse_id: numericWarehouseId,
+          ...dateFilter,
+        });
+      }
+
+      console.log('Fetched data:', pindah); // Log data that is fetched
+
+      // Send the data as response
+      res.json(pindah);
+    } catch (error) {
+      console.error('Error querying pindah:', error); // Log error
+      res.status(500).json({ message: 'Server error occurred.' });
+    }
+  })
+);
+
+
+
+
+warehouseTransferRouter.put(
+  '/by-id/:ref_number',
+  asyncHandler(async (req: any, res: any) => {
+    const mutation = await WarehouseTransferModel.findOne({
+      ref_number: req.params.ref_number,
+    })
+
+    if (!mutation) {
+      return res.status(404).json({ message: 'Mutasi Tak Ditemukan' })
+    }
+
+    if (req.body.id) {
+      mutation.id = req.body.id
+    }
+
+    if (Array.isArray(req.body.items) && req.body.items.length > 0) {
+      mutation.items = mutation.items.map((item) => {
+        // cocokan payload kence database
+        const updatedItem = req.body.items.find(
+          (i: any) => i.finance_account_id === item.finance_account_id
+        )
+
+        if (updatedItem) {
+          // update isi items isik data bru
+          return { ...item, id: updatedItem.id }
+        }
+
+        return item
+      })
+
+      // Simpan jok database
+      const updatedMutation = await mutation.save()
+
+      res.json(updatedMutation)
+    }
+  })
+)
 warehouseTransferRouter.put(
   '/by-id/:ref_number',
   asyncHandler(async (req: any, res: any) => {

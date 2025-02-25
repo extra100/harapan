@@ -20,5 +20,7 @@ export class Barang {
   }
   @prop({ required: true, unique: true })
   public pos_product_category_id!: number
+  @prop({ required: true, unique: true })
+  public qty!: number
 }
 export const BarangModel = getModelForClass(Barang)
