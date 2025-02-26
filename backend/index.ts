@@ -103,10 +103,10 @@ console.log(path.join(__dirname, 'frontend/dist'))
 //   res.sendFile(path.join(__dirname, '../../frontend/index.html'))
 // )
 
-app.use(express.static(path.join(__dirname, 'frontend/dist')))
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 app.get('*', (req: Request, res: Response) =>
-  res.sendFile(path.join(__dirname, 'frontend/dist/index.html'))
-)
+  res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'))
+);
 
 
 const PORT: number = parseInt((process.env.PORT || '5000') as string, 10)
