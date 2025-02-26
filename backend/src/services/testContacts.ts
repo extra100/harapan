@@ -15,7 +15,7 @@ async function testFetchContacts() {
     // Dynamically import node-fetch
     const { default: fetch } = await import('node-fetch')
 
-    const response = await fetch('http://localhost:4000/api/contacts')
+    const response = await fetch('http://localhost:5000/api/contacts')
 
     const data: ContactsResponse = (await response.json()) as ContactsResponse
 
