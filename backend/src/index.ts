@@ -105,7 +105,7 @@ app.get('*', (req: Request, res: Response) =>
   res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'))
 );
 
-const PORT: number = parseInt((process.env.PORT || '5000') as string, 10)
+const PORT: number = parseInt((process.env.PORT || '3001') as string, 10)
 
 app.listen(PORT, () => {
   console.log(`server started at http://localhost:${PORT}`)
