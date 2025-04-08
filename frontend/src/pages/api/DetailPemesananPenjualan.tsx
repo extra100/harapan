@@ -25,13 +25,13 @@ import { AiOutlinePrinter } from 'react-icons/ai'
 import PosPrintKomponent from './PosPrintCok'
 import moment from 'moment'
 import dayjs from 'dayjs'
-import { useFiac } from './Fiac'
+
 
 import { useReactToPrint } from 'react-to-print'
 import Receipt from './printNota'
 import ReceiptJalan from './ReceiptJalan'
 
-import { useIdWarehouse } from './namaWarehouse'
+
 import { useGetContactsQuery } from '../../hooks/contactHooks'
 import { useGetAkunBanksQueryDb } from '../../hooks/akunBankHooks'
 import { useGetWarehousesQuery } from '../../hooks/warehouseHooks'
@@ -114,7 +114,7 @@ const DetailPemesananPenjualan: React.FC = () => {
   }, 0)
   const subTotal = totalDiscount + amount
 
-  const { fiAc } = useFiac()
+
 
   const [amountPaid, setAmountPaid] = useState<number | null>(null)
   const formatNumber = (num: number) => {
@@ -132,7 +132,7 @@ const DetailPemesananPenjualan: React.FC = () => {
       }
     }
   }, [allTransactions, contacts])
-  const { idWarehouse } = useIdWarehouse()
+
 
   const [selectedBank, setSelectedBank] = useState<any | null>(null)
 

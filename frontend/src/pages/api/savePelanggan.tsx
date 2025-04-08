@@ -29,11 +29,11 @@ const BatchProcessPelangggans = () => {
     if (!pelanggans || pelanggans.length === 0) return
 
     const newPelangggans = pelanggans.filter(
-      (pelanggan) => !pelangganSet.has(pelanggan.id)
+      (pelanggan) => !pelangganSet.has(pelanggan._id)
     )
     setPelanggganSet((prevSet) => {
       const updatedSet = new Set(prevSet)
-      newPelangggans.forEach((pelanggan) => updatedSet.add(pelanggan.id))
+      newPelangggans.forEach((pelanggan) => updatedSet.add(pelanggan._id))
       return updatedSet
     })
 

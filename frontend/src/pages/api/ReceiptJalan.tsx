@@ -18,11 +18,20 @@ const ReceiptJalan = forwardRef<HTMLDivElement>((props, ref) => {
   const { data: allTransactions } = useGetTransactionByIdQuery(
     ref_number as string
   )
-  const [contactName, setContactName] = useState<string>('Unknown Contact')
-
   const getPosDetail = allTransactions?.find(
     (transaction: any) => transaction.ref_number === ref_number
   )
+  const idPelanggan = getPosDetail?.contacts?.[0]?.id;
+
+  const { data: contacts } = useGetContactsQuery()
+  const namaPelanggan = contacts?.find(
+    (contact: any) => contact._id === idPelanggan
+  )?.name;
+
+  const [contactName, setContactName] = useState<string>('Unknown Contact')
+
+
+  
   const barangName = getPosDetail?.items?.[0]?.name
   const namaKontak = getPosDetail?.contacts?.[0]?.name
   const idKontakku = getPosDetail?.contacts?.[0]?.id
@@ -63,7 +72,6 @@ const ReceiptJalan = forwardRef<HTMLDivElement>((props, ref) => {
   const getDetailDetil = barangs?.find(
     (gedung: any) => gedung.name === barangName
   )
-  const { data: contacts } = useGetContactsQuery()
 
   useEffect(() => {
     if (allTransactions && contacts) {
@@ -161,7 +169,7 @@ const ReceiptJalan = forwardRef<HTMLDivElement>((props, ref) => {
       <br />
       <Row>
         <Col span={12}>
-          <span style={{ fontSize: '18px' }}>Pelanggan: {kontakringan}</span>
+          <span style={{ fontSize: '18px' }}>Pelanggan: {namaPelanggan}</span>
         </Col>
         <Col span={12} style={{ textAlign: 'right', fontSize: '18px' }}>
           <span>{refNumber}</span>

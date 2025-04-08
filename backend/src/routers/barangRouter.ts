@@ -43,15 +43,16 @@ barangRouter.put(
     if (cumaDisiniUsaha) {
       console.log("🔍 Barang Ditemukan:", cumaDisiniUsaha);
 
+      // Update qty & price (pastikan price dikonversi ke number)
       cumaDisiniUsaha.qty = qty || cumaDisiniUsaha.qty;
-      const updateBarang = await cumaDisiniUsaha.save();
+      cumaDisiniUsaha.price = Number(price) || cumaDisiniUsaha.price;
 
+      const updateBarang = await cumaDisiniUsaha.save();
       console.log("✅ Barang Berhasil Diperbarui:", updateBarang);
       res.json(updateBarang);
     } else {
       console.log("❌ Barang Tidak Ditemukan!");
-      res.status(404).json({ message: "Usaha not found" });
+      res.status(404).json({ message: "Barang tidak ditemukan" });
     }
   })
 );
-

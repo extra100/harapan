@@ -8,6 +8,13 @@ interface UsePembeliansParams {
   transDateTo?: string | null
   selectedWarehouse?: string | null
 }
+export const useGetPembelianByIdQuery = (ref_number: string) =>
+  useQuery<Pembelian[]>(
+    ['pembelians', ref_number],
+    async () =>
+      (await apiClient.get<Pembelian[]>(`/api/pembelians/${ref_number}`))
+        .data
+  )
 
 export const useGetFilteredPembeliansQuery = ({
   transDateFrom,
@@ -84,7 +91,21 @@ export const useGetFilteredPembeliansQuery = ({
         enabled: !!start_date && !!end_date, // Hanya jalan kalau ada tanggal
       });
     
-  
+      export const useUpdatePembelianMutationsss = () => {
+        return useMutation(
+          async (updateData: {
+            ref_number: string
+            trans_date: string
+            down_payment: number
+          }) => {
+            const response = await apiClient.put(
+              `/api/pembelians/${updateData.ref_number}`,
+              updateData
+            )
+            return response.data
+          }
+        )
+      }
 export const useUpdateWitholdingMutation = () => {
   return useMutation(
     async ({
@@ -105,21 +126,7 @@ export const useUpdateWitholdingMutation = () => {
       )
   )
 }
-export const useUpdatePembelianMutationsss = () => {
-  return useMutation(
-    async (updateData: {
-      ref_number: string
-      trans_date: string
-      down_payment: number
-    }) => {
-      const response = await apiClient.put(
-        `/api/pembelians/${updateData.ref_number}`,
-        updateData
-      )
-      return response.data
-    }
-  )
-}
+
   export const useGetPembeliansByContactQuery = (contact_id?: number) =>
     useQuery({
       queryKey: ['pembelians', contact_id],
@@ -169,24 +176,7 @@ export const useGetPembeliansQuery = () =>
         return (await apiClient.get(`/api/pembelians/filter?${queryParams.toString()}`)).data;
       },
     });
-// export const useGetPembeliansQuerymu = (warehouseId: any | null) =>
-//   useQuery({
-//     queryKey: ['pembelians', warehouseId],
-//     queryFn: async () => {
-//       if (!warehouseId) {
-//         console.log('No warehouseId provided')
-//         return []
-//       }
 
-//       console.log('Fetching pembelians for warehouseId:', warehouseId) // Debug
-//       const response = await apiClient.get<Pembelian[]>(
-//         `/api/pembelians?warehouseId=${Number(warehouseId)}`
-//       )
-//       console.log('Data from API:', response.data) // Debug data dari API
-//       return response.data
-//     },
-//     enabled: !!warehouseId,
-//   })
 export const useGetPembeliansQuerymu = (
   warehouseId: number | null,
   startDate: string | null,
@@ -228,13 +218,7 @@ export const useGetPembeliansQuerymu = (
   })
 }
 
-export const useGetPembelianByIdQuery = (ref_number: string) =>
-  useQuery<Pembelian[]>(
-    ['pembelians', ref_number],
-    async () =>
-      (await apiClient.get<Pembelian[]>(`/api/pembelians/${ref_number}`))
-        .data
-  )
+
 export const useGetPesoDetailQuery = (ref_number: string) => {
   return useQuery({
     queryKey: ['pembelians', ref_number],
@@ -414,64 +398,6 @@ export const useUpdateContactMutation = () => {
     }
   )
 }
-
-// export const useUpdatePembelianMutation = () => {
-//   const queryClient = useQueryClient()
-
-//   return useMutation(
-//     async (updatedPembelian: Pembelian) => {
-//       const { ref_number, ...updatedData } = updatedPembelian
-
-//       return apiClient.put<Pembelian>(
-//         `/api/pembelians/${ref_number}`,
-//         updatedData
-//       )
-//     },
-//     {
-//       onSuccess: () => {
-//         // Invalidate queries to refetch the data after update
-//         queryClient.invalidateQueries(['pembelians'])
-//       },
-//     }
-//   )
-// }
-
-// export const useAddReturnMutation = () => {
-//   const queryClient = useQueryClient()
-
-//   return useMutation(
-//     (regak: Return) => {
-//       const { _id, ...dataToSend } = regak
-
-//       return apiClient.post<Return>(`/api/pembelians`, dataToSend)
-//     },
-//     {
-//       onSuccess: () => {
-//         queryClient.invalidateQueries(['returns'])
-//       },
-//     }
-//   )
-// }
-
-// export const useDeletePembelianMutation = () => {
-//   const queryClient = useQueryClient()
-
-//   return useMutation(
-//     (mahelnye: string) => {
-//       const result = apiClient.delete(`/api/pembelians/${mahelnye}`)
-//       result.catch((error) => {
-//         console.error('Error saat menghapus:', error.response.data)
-//       })
-
-//       return result
-//     },
-//     {
-//       onSuccess: () => {
-//         queryClient.invalidateQueries(['pembelians'])
-//       },
-//     }
-//   )
-// }
 
 export const useDeleteWitholdingMutation = () => {
   const queryClient = useQueryClient()

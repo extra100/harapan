@@ -29,13 +29,13 @@ import { AiOutlinePrinter } from 'react-icons/ai'
 import PosPrintKomponent from './PosPrintCok'
 import moment from 'moment'
 import dayjs from 'dayjs'
-import { useFiac } from './Fiac'
+
 import { saveToApiNextPayment } from './NextPayment'
 import { useReactToPrint } from 'react-to-print'
 import Receipt from './printNota'
 import ReceiptJalan from './ReceiptJalan'
 // import { useIdInvoice } from './takeSingleInvoice'
-import { useIdWarehouse } from './namaWarehouse'
+
 import { useGetContactsQuery } from '../../hooks/contactHooks'
 import { useGetAkunBanksQueryDb } from '../../hooks/akunBankHooks'
 import { useGetWarehousesQuery } from '../../hooks/warehouseHooks'
@@ -44,7 +44,7 @@ import { NumericFormat } from 'react-number-format'
 import type { Dayjs } from 'dayjs'
 import { useVoidInvoice } from './voidInvoice'
 import { Transaction } from '../../types/Transaction'
-import { useUnvoidInvoice } from './unvoidInvoice'
+// import { useUnvoidInvoice } from './unvoidInvoice'
 import SingleDate from '../SingleDate'
 
 import {
@@ -172,7 +172,7 @@ const BayarHutangRetur: React.FC = () => {
 
   console.log({ getIdReturPayment })
 
-  const { fiAc } = useFiac()
+
 
   const [amountPaid, setAmountPaid] = useState<number | null>(null)
   useEffect(() => {
@@ -212,7 +212,7 @@ const BayarHutangRetur: React.FC = () => {
       }
     }
   }, [allTransactionsss, contacts])
-  const { idWarehouse } = useIdWarehouse()
+
 
   const [selectedBank, setSelectedBank] = useState<any | null>(null)
 
@@ -222,10 +222,15 @@ const BayarHutangRetur: React.FC = () => {
   const [loadingSpinner, setLoadingSpinner] = useState(false)
 
   const handleFormSubmit = (values: any) => {
-    const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
+    const accountMap = allTransactionsss?.reduce((map: any, warehouse: any) => {
       map[warehouse.name] = warehouse.id
       return map
     }, {})
+    // const handleFormSubmit = (values: any) => {
+    //   const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
+    //     map[warehouse.name] = warehouse.id
+    //     return map
+    //   }, {})
 
     const accountId = accountMap[selectedBank as any]
 

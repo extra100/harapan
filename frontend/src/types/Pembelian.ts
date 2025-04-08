@@ -4,7 +4,7 @@ export type Pembelian = {
   _id: string
   unique_id: number
   due_date: string
-  contact_id: number
+  contact_id: string
   id: number
   sales_id: number | null
   status_id: number
@@ -42,7 +42,7 @@ export type Pembelian = {
   }[]
 
   contacts: {
-    id: number
+    id: string
     name: string
   }[]
   warehouses: {

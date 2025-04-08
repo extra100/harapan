@@ -5,7 +5,7 @@ import {
   useGetTransaksisQuery,
   useGetTransaksisQuerymu,
 } from '../hooks/transactionHooks'
-import { useIdInvoice } from './api/takeSingleInvoice'
+// import { useIdInvoice } from './api/takeSingleInvoice'
 import UserContext from '../contexts/UserContext'
 import { useGetContactsQuery } from '../hooks/contactHooks'
 import { useNavigate } from 'react-router-dom'
@@ -28,7 +28,7 @@ const ListVoid: React.FC = () => {
   const [selectedRefNumber, setSelectedRefNumber] = useState<string | null>(
     null
   )
-  const { getIdAtInvoice } = useIdInvoice(selectedRefNumber || '')
+  // const { getIdAtInvoice } = useIdInvoice(selectedRefNumber || '')
 
   const handleRefNumberClick = (ref_number: string) => {
     setSelectedRefNumber(ref_number)

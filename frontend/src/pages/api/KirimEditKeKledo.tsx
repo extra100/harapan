@@ -2,7 +2,7 @@ import { message } from 'antd'
 import { useState } from 'react'
 import { HOST } from '../../config'
 import TOKEN from '../../token'
-import IdUnikDariKledo from './SimpanIdUnikDariKledo'
+// import IdUnikDariKledo from './SimpanIdUnikDariKledo'
 
 export function KirimEditKeKledo() {
   const [editLoading, setEditLoading] = useState(false)
@@ -25,7 +25,7 @@ export function KirimEditKeKledo() {
       currency_rate: null,
       currency_source_id: 0,
       due_date: '2024-10-24',
-      id: IdUnikDariKledo,
+      // id: IdUnikDariKledo,
       include_tax: 0,
       items: [
         {

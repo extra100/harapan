@@ -41,7 +41,8 @@ const LaporanKeListTransaksi: React.FC = () => {
     const filteredContacts = contacts?.filter((contact) =>
       contact.name.toLowerCase().includes(searchText.toLowerCase())
     )
-    const filteredContactIds = filteredContacts?.map((contact) => contact.id)
+    // const filteredContactIds = filteredContacts?.map((contact) => contact.id)
+    const filteredContactIds = filteredContacts?.map((contact) => contact._id)
 
     return filteredData
       .filter((transaction) => transaction.reason_id !== 'void') // Tambahkan filter ini
@@ -64,10 +65,19 @@ const LaporanKeListTransaksi: React.FC = () => {
       dataIndex: 'contact_id',
       key: 'contact_id',
       render: (contactId: any) => {
-        const contact = contacts?.find((contact) => contact.id === contactId)
+        const contact = contacts?.find((contact) => contact._id === contactId)
         return contact ? contact.name : 'Pelanggan tidak ditemukan'
       },
     },
+    // {
+    //   title: 'Pelanggan',
+    //   dataIndex: 'contact_id',
+    //   key: 'contact_id',
+    //   render: (contactId: any) => {
+    //     const contact = contacts?.find((contact) => contact.id === contactId)
+    //     return contact ? contact.name : 'Pelanggan tidak ditemukan'
+    //   },
+    // },
     {
       title: 'Tanggal Transaksi',
       dataIndex: 'trans_date',

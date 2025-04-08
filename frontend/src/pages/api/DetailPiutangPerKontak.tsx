@@ -5,7 +5,7 @@ import { Button, Col, Table } from 'antd'
 import { TakeInvoicesFromKledoBasedOnPelanggan } from '../TakeInvoicesFromKledoBasedOnPelanggan'
 import { useGetContactsQuery } from '../../hooks/contactHooks'
 
-import Warehouse from '../transaction/POS/warehouse'
+// import Warehouse from '../transaction/POS/warehouse'
 import { useGetWarehousesQuery } from '../../hooks/warehouseHooks'
 import SingleDate from '../SingleDate'
 import { formatDate, formatDateBulan } from './FormatDate'

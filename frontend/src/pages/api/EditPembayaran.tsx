@@ -15,7 +15,7 @@ import {
   useGetTransactionByIdQuery,
   useUpdateWitholdingMutation,
 } from '../../hooks/transactionHooks'
-import { TakePembayaranBankTrans } from '../TakePembayaranBankTrans'
+// import { TakePembayaranBankTrans } from '../TakePembayaranBankTrans'
 import { HOST } from '../../config'
 import TOKEN from '../../token'
 import { useGetFilteredContactsByOutletQuery } from '../../hooks/contactHooks'
@@ -57,7 +57,7 @@ const EditPembayaran = () => {
   : null;
   const { data: contactjir } = useGetFilteredContactsByOutletQuery(selectedGudangName as any)
   const selectedPelangganName = contactjir 
-  ? contactjir?.find(contact => contact.id === idContact)?.name
+  ? contactjir?.find(contact => contact._id === idContact)?.name
   : null;
   const [search, setSearch] = useState<any>({
     memorandum,
@@ -66,14 +66,14 @@ const EditPembayaran = () => {
   console.log({ selectedGudangName })
   console.log({ selectedPelangganName })
 
-  const { getBankTrans } = TakePembayaranBankTrans(memorandum as any) || {
-    getBankTrans: [],
-  }
-  console.log({ getBankTrans })
+  // // const { getBankTrans } = TakePembayaranBankTrans(memorandum as any) || {
+  // //   getBankTrans: [],
+  // // }
+  // console.log({ getBankTrans })
 
-  const firstPayment =
-    getBankTrans && getBankTrans.length > 0 ? getBankTrans[0] : null
-    const jumlahBayarTerakhir = firstPayment ? firstPayment.amount : null;
+  // const firstPayment =
+  //   getBankTrans && getBankTrans.length > 0 ? getBankTrans[0] : null
+  //   const jumlahBayarTerakhir = firstPayment ? firstPayment.amount : null;
 
   const [isModalVisibleEdit, setIsModalVisibleEdit] = useState(false)
   const [isModalVisiblePrint, setIsModalVisiblePrint] = useState(false)

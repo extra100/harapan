@@ -69,22 +69,79 @@ export const useGetFilteredTransaksisQuery = ({
       enabled: !!start_date && !!end_date, // Hanya jalan kalau ada tanggal
     });
 
-    export const useGetQtySummaryQuery = (start_date: string, end_date: string) =>
-      useQuery({
-        queryKey: ['qtySummary', start_date, end_date], // Cache key
-        queryFn: async () => {
-          const { data } = await apiClient.get<{ name: string; total_qty: number }[]>(
-            `/api/transactions/qty-summary?start_date=${start_date}&end_date=${end_date}`
-          );
-          return data.map((item) => ({
-            ...item,
-            total_qty: Math.floor(item.total_qty), // Pastikan nilai integer
-          }));
-        },
-        enabled: !!start_date && !!end_date, // Hanya jalan kalau ada tanggal
-      });
-    
-  
+      export const useGetQtySummaryQuery = (start_date: string, end_date: string) =>
+        useQuery({
+          queryKey: ['qtySummary', start_date, end_date], // Cache key
+          queryFn: async () => {
+            const { data } = await apiClient.get<{ name: string; total_qty: number }[]>(
+              `/api/transactions/qty-summary?start_date=${start_date}&end_date=${end_date}`
+            );
+            return data.map((item) => ({
+              ...item,
+              total_qty: Math.floor(item.total_qty), // Pastikan nilai integer
+            }));
+          },
+          enabled: !!start_date && !!end_date, // Hanya jalan kalau ada tanggal
+        });
+        // export const useGetDownPaymentSummaryQuery = (start_date: string, end_date: string) =>
+        //   useQuery({
+        //     queryKey: ["downPaymentSummary", start_date, end_date],
+        //     queryFn: async () => {
+        //       const { data } = await apiClient.get<any[]>(
+        //         `/api/transactions/summary/down-payment?start_date=${start_date}&end_date=${end_date}`
+        //       );
+        //       if (!Array.isArray(data)) {
+        //         console.error("Unexpected data format:", data);
+        //         throw new Error("Data yang diterima tidak berupa array");
+        //       }
+        //       return data.map((item) => ({
+        //         ...item,
+        //         down_payment: Math.floor(item.down_payment),
+        //       }));
+        //     },
+        //     enabled: !!start_date && !!end_date,
+        //   });
+        // export const useGetDownPaymentSummaryQuery = (start_date: string, end_date: string) =>
+        //   useQuery({
+        //     queryKey: ["downPaymentSummary", start_date, end_date],
+        //     queryFn: async () => {
+        //       const { data } = await apiClient.get<any[]>(
+        //         `/api/transactions/summary/down-payment?start_date=${start_date}&end_date=${end_date}`
+        //       );
+        //       if (!Array.isArray(data)) {
+        //         console.error("Unexpected data format:", data);
+        //         throw new Error("Data yang diterima tidak berupa array");
+        //       }
+        //       return data.map((item) => ({
+        //         ...item,
+        //         down_payment: Math.floor(item.down_payment),
+        //         memo: item.memo || "-", // Pastikan memo ikut
+        //       }));
+        //     },
+        //     enabled: !!start_date && !!end_date,
+        //   });
+        export const useGetDownPaymentSummaryQuery = (start_date: string, end_date: string) =>
+          useQuery({
+            queryKey: ["downPaymentSummary", start_date, end_date],
+            queryFn: async () => {
+              const { data } = await apiClient.get<any[]>(
+                `/api/transactions/summary/down-payment?start_date=${start_date}&end_date=${end_date}`
+              );
+              if (!Array.isArray(data)) {
+                console.error("Unexpected data format:", data);
+                throw new Error("Data yang diterima tidak berupa array");
+              }
+        
+              return data; // Langsung return array tanpa agregasi
+            },
+            enabled: !!start_date && !!end_date,
+          });
+        
+        
+        
+        
+        
+      
 export const useUpdateWitholdingMutation = () => {
   return useMutation(
     async ({
@@ -169,24 +226,7 @@ export const useGetTransaksisQuery = () =>
         return (await apiClient.get(`/api/transactions/filter?${queryParams.toString()}`)).data;
       },
     });
-// export const useGetTransaksisQuerymu = (warehouseId: any | null) =>
-//   useQuery({
-//     queryKey: ['transactions', warehouseId],
-//     queryFn: async () => {
-//       if (!warehouseId) {
-//         console.log('No warehouseId provided')
-//         return []
-//       }
 
-//       console.log('Fetching transactions for warehouseId:', warehouseId) // Debug
-//       const response = await apiClient.get<Transaction[]>(
-//         `/api/transactions?warehouseId=${Number(warehouseId)}`
-//       )
-//       console.log('Data from API:', response.data) // Debug data dari API
-//       return response.data
-//     },
-//     enabled: !!warehouseId,
-//   })
 export const useGetTransaksisQuerymu = (
   warehouseId: number | null,
   startDate: string | null,
@@ -415,63 +455,6 @@ export const useUpdateContactMutation = () => {
   )
 }
 
-// export const useUpdateTransactionMutation = () => {
-//   const queryClient = useQueryClient()
-
-//   return useMutation(
-//     async (updatedTransaction: Transaction) => {
-//       const { ref_number, ...updatedData } = updatedTransaction
-
-//       return apiClient.put<Transaction>(
-//         `/api/transactions/${ref_number}`,
-//         updatedData
-//       )
-//     },
-//     {
-//       onSuccess: () => {
-//         // Invalidate queries to refetch the data after update
-//         queryClient.invalidateQueries(['transactions'])
-//       },
-//     }
-//   )
-// }
-
-// export const useAddReturnMutation = () => {
-//   const queryClient = useQueryClient()
-
-//   return useMutation(
-//     (regak: Return) => {
-//       const { _id, ...dataToSend } = regak
-
-//       return apiClient.post<Return>(`/api/transactions`, dataToSend)
-//     },
-//     {
-//       onSuccess: () => {
-//         queryClient.invalidateQueries(['returns'])
-//       },
-//     }
-//   )
-// }
-
-// export const useDeleteTransactionMutation = () => {
-//   const queryClient = useQueryClient()
-
-//   return useMutation(
-//     (mahelnye: string) => {
-//       const result = apiClient.delete(`/api/transactions/${mahelnye}`)
-//       result.catch((error) => {
-//         console.error('Error saat menghapus:', error.response.data)
-//       })
-
-//       return result
-//     },
-//     {
-//       onSuccess: () => {
-//         queryClient.invalidateQueries(['transactions'])
-//       },
-//     }
-//   )
-// }
 
 export const useDeleteWitholdingMutation = () => {
   const queryClient = useQueryClient()
@@ -522,17 +505,5 @@ export const useUpdateWitholdingPercentMutation = () => {
     }
   )
 }
-export const useGetWithholdingSummaryQuery = (start_date?: string, end_date?: string) => {
-  return useQuery({
-    queryKey: ['withholdingSummary', start_date, end_date],
-    queryFn: async () => {
-      if (!start_date || !end_date) return []; // ✅ Hook tetap terpanggil, hanya return data kosong jika tanggal tidak ada
-      const url = `/api/transactions/withholding-summary?start_date=${encodeURIComponent(start_date)}&end_date=${encodeURIComponent(end_date)}`;
-      console.log("Fetching URL:", url);
-      const { data } = await apiClient.get(url);
-      console.log("Response data:", data);
-      return data;
-    },
-    enabled: !!start_date && !!end_date, // ✅ Hanya fetch data kalau start_date & end_date ada
-  });
-};
+
+

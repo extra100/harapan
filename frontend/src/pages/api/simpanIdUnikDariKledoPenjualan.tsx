@@ -25,13 +25,13 @@ import { AiOutlinePrinter } from 'react-icons/ai'
 import PosPrintKomponent from './PosPrintCok'
 import moment from 'moment'
 import dayjs from 'dayjs'
-import { useFiac } from './Fiac'
+
 
 import { useReactToPrint } from 'react-to-print'
 import Receipt from './printNota'
 import ReceiptJalan from './ReceiptJalan'
 
-import { useIdWarehouse } from './namaWarehouse'
+
 import { useGetContactsQuery } from '../../hooks/contactHooks'
 import { useGetAkunBanksQueryDb } from '../../hooks/akunBankHooks'
 import { useGetWarehousesQuery } from '../../hooks/warehouseHooks'
@@ -44,7 +44,7 @@ import {
   updateDenganIdUnikDariKledo,
   useGetTransactionByIdQuery,
 } from '../../hooks/transactionHooks'
-import { useIdInvoice } from './takeSingleInvoice'
+// import { useIdInvoice } from './takeSingleInvoice'
 import { useIdPembayaranBank } from './takeSinglePembayaranBank'
 
 const { Title, Text } = Typography
@@ -68,15 +68,20 @@ const SimpanIdUnikDariKledoPenjualan: React.FC = () => {
   const { ids } = useParams<{ ids?: any }>()
 
   const updateHanyaId = updateDenganIdUnikDariKledo()
-
-  const { getIdAtInvoice } = useIdInvoice(ref_number as string)
-  const justPutId = getIdAtInvoice?.id ?? null
+  const { data: allTransactions } = useGetTransactionByIdQuery(
+    ref_number as string
+  )
+  const getPosDetail = allTransactions?.find(
+    (transaction: any) => transaction.ref_number === ref_number
+  )
+  // const { getIdAtInvoice } = useIdInvoice(ref_number as string)
+  const justPutId = getPosDetail?.id ?? null
 
   const { getIdAtPembayaranBank } = useIdPembayaranBank(ids as any)
   console.log({ getIdAtPembayaranBank })
 
   const idPadaItems =
-    getIdAtInvoice?.items?.map((item: any) => ({
+    getPosDetail?.items?.map((item: any) => ({
       id: item.id,
       finance_account_id: item.finance_account_id,
     })) || []
@@ -107,17 +112,13 @@ const SimpanIdUnikDariKledoPenjualan: React.FC = () => {
     }
   }
 
-  const { data: allTransactions } = useGetTransactionByIdQuery(
-    ref_number as string
-  )
+
   const { data: contacts } = useGetContactsQuery()
   const { data: akunBanks } = useGetAkunBanksQueryDb()
 
-  const invoiceId = getIdAtInvoice?.id ?? null
+  const invoiceId = getPosDetail?.id ?? null
 
-  const getPosDetail = allTransactions?.find(
-    (transaction: any) => transaction.ref_number === ref_number
-  )
+
 
   const gudangName = getPosDetail?.warehouses?.[0]?.name
   const gudangId = getPosDetail?.warehouses?.[0]?.warehouse_id
@@ -141,7 +142,7 @@ const SimpanIdUnikDariKledoPenjualan: React.FC = () => {
   }, 0)
   const subTotal = totalDiscount + amount
 
-  const { fiAc } = useFiac()
+
 
   const [amountPaid, setAmountPaid] = useState<number | null>(null)
   const formatNumber = (num: number) => {
@@ -159,7 +160,7 @@ const SimpanIdUnikDariKledoPenjualan: React.FC = () => {
       }
     }
   }, [allTransactions, contacts])
-  const { idWarehouse } = useIdWarehouse()
+
 
   const [selectedBank, setSelectedBank] = useState<any | null>(null)
 

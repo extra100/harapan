@@ -15,7 +15,7 @@ import {
   message,
   Input,
 } from 'antd'
-import { useIdWarehouse } from './namaWarehouse'
+
 import { useIdNamaBarang } from './NamaBarang'
 import { useReactToPrint } from 'react-to-print'
 import { useGetWarehousesQuery } from '../../hooks/warehouseHooks'

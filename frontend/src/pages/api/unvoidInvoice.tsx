@@ -2,7 +2,7 @@ import { message } from 'antd'
 import { useState } from 'react'
 import { HOST } from '../../config'
 import TOKEN from '../../token'
-import { useIdInvoice } from './takeSingleInvoice'
+// import { useIdInvoice } from './takeSingleInvoice'
 
 export function useUnvoidInvoice() {
   const [voidLoading, setVoidLoading] = useState(false)

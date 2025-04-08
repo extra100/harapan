@@ -3,7 +3,7 @@ import { Button, Col, DatePicker, Input, Row, Select, Table, Tag, Tooltip } from
 
 import { useGetTransaksisQuery, useGetTransactionsByContactQuery } from '../../hooks/transactionHooks'
 import { useGetTransaksisQuerymu } from '../../hooks/transactionHooks'
-import { useIdInvoice } from './takeSingleInvoice'
+// import { useIdInvoice } from './takeSingleInvoice'
 import UserContext from '../../contexts/UserContext'
 import { useGetContactsQuery } from '../../hooks/contactHooks'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -69,7 +69,7 @@ const AuditQty: React.FC = () => {
   const [selectedRefNumber, setSelectedRefNumber] = useState<string | null>(
     null
   )
-  const { getIdAtInvoice } = useIdInvoice(selectedRefNumber || '')
+  // const { getIdAtInvoice } = useIdInvoice(selectedRefNumber || '')
 
   const handleRefNumberClick = (ref_number: string) => {
     setSelectedRefNumber(ref_number)
@@ -81,7 +81,7 @@ const AuditQty: React.FC = () => {
   : null;
     const { data: pelanggan } = useGetFilteredContactsByOutletQuery(selectedGudangName as any)
     const selectedPelangganName = selectedWarehouseId 
-    ? contacts?.find(contact => Number(contact.id) === selectedWarehouseId)?.name 
+    ? contacts?.find(contact => Number(contact._id) === selectedWarehouseId)?.name 
     : null;
 
   const getContactName = (contactId: string): string => {
@@ -228,6 +228,12 @@ const filteredData = allData
 
   
   const columns = [
+    {
+      title: 'Tanggal',
+      dataIndex: 'trans_date', 
+      key: 'contact_name',
+      render: (contactId: string) => getContactName(contactId),
+    },
     {
       title: 'No',
       key: 'no',
@@ -399,7 +405,7 @@ const filteredData = allData
             }
           >
             {pelengganId?.map((id) => {
-              const contact = contacts?.find((contact) => contact.id === id);
+              const contact = contacts?.find((contact) => contact._id === id);
               return (
                 <Select.Option key={id} value={id}>
                   {contact?.name || "Nama Tidak Ditemukan"}

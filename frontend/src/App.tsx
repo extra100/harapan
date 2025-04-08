@@ -270,6 +270,13 @@ function App() {
                   >
                     List Penjualan
                   </Link>
+                  <Link
+                    className="nav-link header-link p-1 px-3"
+                    to={`/listpembelian`}
+                  >
+                    List Pembelian
+                  </Link>
+
 
                   <Link
                     className="nav-link header-link p-1 px-3"

@@ -28,6 +28,11 @@ import barangTetukRouter from './routers/barangTetukRouter'
 import pelangganRouter from './routers/pelangganRouter'
 import penjualanKategoryRouter from './routers/penjualanKategoryRouter'
 import pembelianRouter from './routers/pembelianRouter'
+import { biayaRouter } from './routers/biayaRouter'
+import pembiayaanRouter from './routers/pembiayaanRouter'
+import pembiayaanHutangRouter from './routers/pembiayaanHutangRouter'
+import isiSaldoKasKecilRouter from './routers/isiSaldoKasKecilRouter'
+import typeKontakRouter from './routers/typeKontakRouter'
 
 dotenv.config()
 const MONGODB_URI =
@@ -59,6 +64,7 @@ app.use(
   })
 );
 
+
 app.use(express.json({ limit: '200mb' }))
 app.use(express.urlencoded({ extended: true, limit: '200mb' }))
 
@@ -68,10 +74,15 @@ app.use('/api/tags', tagRouter)
 app.use('/api/barangs', barangTetukRouter)
 app.use('/api/akunbanks', akunBankRouter)
 app.use('/api/contacts', contactRouter)
+app.use('/api/biayas', biayaRouter)
 app.use('/api/pelanggans', pelangganRouter)
+app.use('/api/typekontaks', typeKontakRouter)
 app.use('/api/barangs', barangRouter)
 app.use('/api/transactions', transactionRouter)
 app.use('/api/pembelians', pembelianRouter)
+app.use('/api/pembiayaans', pembiayaanRouter)
+app.use('/api/pembiayaanHutangs', pembiayaanHutangRouter)
+app.use('/api/isiSaldoKasKecils', isiSaldoKasKecilRouter)
 app.use('/api/pps', ppRouter)
 app.use('/api/returns', returnRouter)
 app.use('/api/pindah', warehouseTransferRouter)
@@ -106,7 +117,7 @@ app.get('*', (req: Request, res: Response) =>
   res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'))
 )
 
-const PORT: number = parseInt((process.env.PORT || '4000') as string, 10)
+const PORT: number = parseInt((process.env.PORT || '5173') as string, 10)
 
 app.listen(PORT, () => {
   console.log(`server started at http://localhost:${PORT}`)

@@ -30,13 +30,13 @@ import { AiOutlinePrinter } from 'react-icons/ai'
 import PosPrintKomponent from './PosPrintCok'
 import moment from 'moment'
 import dayjs from 'dayjs'
-import { useFiac } from './Fiac'
+
 import { saveToApiNextPayment } from './NextPayment'
 import { useReactToPrint } from 'react-to-print'
 import Receipt from './printNota'
 import ReceiptJalan from './ReceiptJalan'
-import { useIdInvoice } from './takeSingleInvoice'
-import { useIdWarehouse } from './namaWarehouse'
+// import { useIdInvoice } from './takeSingleInvoice'
+
 import {
   useGetContactsQuery,
   useGetContactsQuerysa,
@@ -94,8 +94,7 @@ const DetailKledo: React.FC = () => {
 
   
   const { data: allreturns } = useGetReturnByIdQuery(ref_number as string)
-  // console.log({ allreturns })
-  const { data: contacts } = useGetContactsQuery()
+
   const { data: akunBanks } = useGetAkunBanksQueryDb()
 console.log({akunBanks})
 
@@ -104,13 +103,19 @@ console.log({akunBanks})
     (transaction: any) => transaction.ref_number === ref_number
   )
 
+ const idPelanggan = getPosDetail?.contacts?.[0]?.id;
+
+  const { data: contacts } = useGetContactsQuery()
+  const namaPelanggan = contacts?.find(
+    (contact: any) => contact._id === idPelanggan
+  )?.name;
   const getReturDetail = allreturns?.filter(
     (balikin: any) =>
       balikin.memo === ref_number && 
       balikin.items?.some((item: any) => item.qty > 0)
   );
   
-  // console.log({ getReturDetail })
+  console.log({ namaPelanggan })
   const totalAmountRetur = getReturDetail
   ?.flatMap((balikin: any) => balikin.items || []) // Menggabungkan semua items
   .reduce((sum: number, item: any) => sum + (item.amount || 0), 0) || 0; // Menjumlahkan amount
@@ -128,12 +133,12 @@ console.log({akunBanks})
   const idMonggo = getPosDetail?._id
   const pesan = getPosDetail?.message
   const { hapusLoading, isDeleted } = useDeleteInvoice(selectedInvoiceId ?? 0)
-  const { getIdAtInvoice } = useIdInvoice(ref_number || '')
+  // const { getIdAtInvoice } = useIdInvoice(ref_number || '')
   // console.log({ getIdAtInvoice })
   // console.log({ ref_number })
-  const invoiceId = getIdAtInvoice ? getIdAtInvoice.id : null
+  const invoiceId = getPosDetail ? getPosDetail.id : null
 
-  const refNumber = getIdAtInvoice ? getIdAtInvoice.ref_number : null
+  const refNumber = getPosDetail ? getPosDetail.memo : null
   const handleDelete = () => {
     if (IdYangAkanDiDelete) {
       setSelectedInvoiceId(IdYangAkanDiDelete)
@@ -160,8 +165,10 @@ console.log({akunBanks})
     return qty > 0 ? amount / qty : 0
   })
 
-  const { data: contactjir } = useGetContactsQuerysa(kontakId as any)
-  const kontakringan = contactjir?.[0]?.name
+  // const { data: contactjir } = useGetContactsQuerysa(kontakId as any)
+    const { data: contactjir } = useGetContactsQuery()
+  
+  // const kontakringan = contactjir?.[0]?.name
 
   // console.log('aneh kembe bismillah 212', kontakringan)
   // console.log('dvSBSRFb kontak', contactjir)
@@ -201,7 +208,7 @@ console.log({akunBanks})
   const finalTotalAgterRetur = amount - (totalAmountRetur || 0);
   const finalDueAfterRerur = due - (totalAmountRetur || 0);
 
-  const { fiAc } = useFiac()
+
 
   const [amountPaid, setAmountPaid] = useState<number | null>(null)
   console.log({amountPaid})
@@ -240,7 +247,7 @@ console.log({akunBanks})
       }
     }
   }, [allTransactions, contacts])
-  const { idWarehouse } = useIdWarehouse()
+
 
   const [selectedBank, setSelectedBank] = useState<any | null>(null)
   const bankId = akunBanks?.find((b) => b.name === selectedBank)?.id || ""
@@ -440,12 +447,12 @@ const handleVoid = (values: any) => {
   
 
   const handleFormSubmit = async (values: any) => {
-    const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
-      map[warehouse.name] = warehouse.id;
-      return map;
-    }, {});
+    // const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
+    //   map[warehouse.name] = warehouse.id;
+    //   return map;
+    // }, {});
   
-    const accountId = accountMap[selectedBank as any];
+    // const accountId = accountMap[selectedBank as any];
   
     if (!langka) {
       console.error("No valid ref_number found.");
@@ -455,7 +462,7 @@ const handleVoid = (values: any) => {
  
   
     try {
-      navigate(`/getnextpaymnet/${memorandum}`);
+      navigate(`/detailkledo/${memorandum}`);
   
       const existingInvoice = allTransactions?.find(
         (transaction) => transaction.id === langka
@@ -673,7 +680,7 @@ const handleVoid = (values: any) => {
     },
 
     {
-      title: 'Harga',
+      title: 'Harga kulo',
       dataIndex: 'price',
       key: 'price',
       align: 'left',
@@ -823,7 +830,7 @@ const handleVoid = (values: any) => {
               <Text strong>Pelanggan:</Text>
             </div>
             <Title level={5} style={{ marginBottom: 0 }}>
-              {kontakringan}
+              {namaPelanggan}
             </Title>
           </Col>
           <Col span={12}>
@@ -1063,7 +1070,9 @@ const handleVoid = (values: any) => {
                       .includes(input.toLowerCase())
                   }
                 >
-                  {akunBanks?.map((e) => (
+                   {akunBanks
+                  ?.filter((e) => e.id === 3 || e.id === 4)
+                  .map((e) => (
                     <Select.Option key={e.id} value={e.name}>
                       {e.name}
                     </Select.Option>

@@ -3,23 +3,24 @@ import { modelOptions, prop, getModelForClass } from '@typegoose/typegoose'
 @modelOptions({ schemaOptions: { timestamps: true } })
 export class Contact {
   @prop({ required: true })
-  public id!: number // Menggunakan tipe number sesuai dengan tipe dari API
+  public address!: string
 
   @prop({ required: true })
   public name!: string
+  
   @prop({ required: true })
-  public outlet_name!: string
+  public phone!: string
 
   @prop({ required: true })
-  public group_id!: number // Tipe number sesuai dengan API
+  public outlet_name?: string
 
-  @prop()
-  public group?: {
-    id: number
-    name: string
-  } // Menggunakan properti opsional untuk group
-
-  public _id?: string // Optional MongoDB default ID field
+  
+  @prop({ required: true })
+  public id_outlet?: number
+  @prop({ required: true })
+  public id_kontak?: string
+  
+  
 }
 
 export const ContactModel = getModelForClass(Contact)

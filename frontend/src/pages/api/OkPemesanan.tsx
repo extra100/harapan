@@ -28,13 +28,13 @@ import { AiOutlinePrinter } from 'react-icons/ai'
 import PosPrintKomponent from './PosPrintCok'
 import moment from 'moment'
 import dayjs from 'dayjs'
-import { useFiac } from './Fiac'
+
 import { saveToApiNextPayment } from './NextPayment'
 import { useReactToPrint } from 'react-to-print'
 import Receipt from './printNota'
 import ReceiptJalan from './ReceiptJalan'
-import { useIdInvoice } from './takeSingleInvoice'
-import { useIdWarehouse } from './namaWarehouse'
+// import { useIdInvoice } from './takeSingleInvoice'
+
 import { useGetContactsQuery } from '../../hooks/contactHooks'
 import { useGetAkunBanksQueryDb } from '../../hooks/akunBankHooks'
 import { useGetWarehousesQuery } from '../../hooks/warehouseHooks'
@@ -94,17 +94,18 @@ const OkPemesanan: React.FC = () => {
   const { data: contacts } = useGetContactsQuery()
   const { data: akunBanks } = useGetAkunBanksQueryDb()
 
-  const { getIdAtInvoice } = useIdInvoice(ref_number || '')
+  // const { getIdAtInvoice } = useIdInvoice(ref_number || '')
 
-  const invoiceId = getIdAtInvoice ? getIdAtInvoice.id : null
-  console.log('id dari kledo yang kotrol semua', invoiceId)
 
-  const refNumber = getIdAtInvoice ? getIdAtInvoice.ref_number : null
   // console.log('ref_number dari database keldo', refNumber) yang atas saya ganti dengan memo
 
   const getPosDetail = allTransactions?.find(
     (transaction: any) => transaction.ref_number === ref_number
   )
+  const invoiceId = getPosDetail ? getPosDetail.id : null
+  console.log('id dari kledo yang kotrol semua', invoiceId)
+
+  const refNumber = getPosDetail ? getPosDetail.memo : null
   console.log({ getPosDetail })
   const gudangName = getPosDetail?.warehouses?.[0]?.name
   const gudangId = getPosDetail?.warehouses?.[0]?.warehouse_id
@@ -128,7 +129,7 @@ const OkPemesanan: React.FC = () => {
   }, 0)
   const subTotal = totalDiscount + amount
 
-  const { fiAc } = useFiac()
+
 
   const [amountPaid, setAmountPaid] = useState<number | null>(null)
   const formatNumber = (num: number) => {
@@ -158,7 +159,7 @@ const OkPemesanan: React.FC = () => {
       }
     }
   }, [allTransactions, contacts])
-  const { idWarehouse } = useIdWarehouse()
+
 
   const [selectedBank, setSelectedBank] = useState<any | null>(null)
 
@@ -235,18 +236,18 @@ const OkPemesanan: React.FC = () => {
   // }
 
   const handleFormSubmit = (values: any) => {
-    const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
-      map[warehouse.name] = warehouse.id
-      return map
-    }, {})
+    // const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
+    //   map[warehouse.name] = warehouse.id
+    //   return map
+    // }, {})
 
-    const accountId = accountMap[selectedBank as any]
+    // const accountId = accountMap[selectedBank as any]
 
     if (langka) {
       const invoiceData = {
         witholdings: [
           {
-            witholding_account_id: accountId || bankAccountId,
+            witholding_account_id: bankAccountId,
             name: selectedBank || bankAccountName,
             down_payment: amountPaid || 0,
             witholding_percent: 0,
@@ -302,7 +303,7 @@ const OkPemesanan: React.FC = () => {
     const payload = {
       amount: amountPaid,
       attachment: [],
-      bank_account_id: accountId || bankAccountId,
+      bank_account_id: bankAccountId,
       business_tran_id: langka,
       witholding_amount: amountPaid,
       memo: values.catatan || null,

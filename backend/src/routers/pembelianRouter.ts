@@ -5,6 +5,25 @@ import { PembelianModel } from '../models/PembelianModel'
 
 export const pembelianRouter = express.Router()
 import dayjs from 'dayjs'
+
+pembelianRouter.get(
+  '/:ref_number',
+  asyncHandler(async (req: Request, res: Response) => {
+    const posData = await PembelianModel.find({
+      ref_number: req.params.ref_number,
+    })
+    if (posData && posData.length > 0) {
+      res.json(posData)
+    } else {
+      const posById = await PembelianModel.findById(req.params.ref_number)
+      if (posById) {
+        res.json(posById)
+      } else {
+        res.status(404).json({ message: 'Pos not found' })
+      }
+    }
+  })
+)
 pembelianRouter.get(
   '/discount-summary',
   asyncHandler(async (req: Request, res: Response) => {
@@ -233,24 +252,7 @@ pembelianRouter.get(
   })
 );
 
-pembelianRouter.get(
-  '/:ref_number',
-  asyncHandler(async (req: Request, res: Response) => {
-    const posData = await PembelianModel.find({
-      ref_number: req.params.ref_number,
-    })
-    if (posData && posData.length > 0) {
-      res.json(posData)
-    } else {
-      const posById = await PembelianModel.findById(req.params.ref_number)
-      if (posById) {
-        res.json(posById)
-      } else {
-        res.status(404).json({ message: 'Pos not found' })
-      }
-    }
-  })
-)
+
 
 pembelianRouter.post(
   '/',

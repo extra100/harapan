@@ -3,7 +3,7 @@ import { Button, Col, DatePicker, Input, Row, Select, Table, Tag } from 'antd'
 
 import { useGetTransaksisQuery } from '../../hooks/transactionHooks'
 import { useGetTransaksisQuerymu } from '../../hooks/transactionHooks'
-import { useIdInvoice } from './takeSingleInvoice'
+// import { useIdInvoice } from './takeSingleInvoice'
 import UserContext from '../../contexts/UserContext'
 import { useGetContactsQuery } from '../../hooks/contactHooks'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -44,7 +44,7 @@ console.log({endDate})
   const [selectedRefNumber, setSelectedRefNumber] = useState<string | null>(
     null
   )
-  const { getIdAtInvoice } = useIdInvoice(selectedRefNumber || '')
+  // const { getIdAtInvoice } = useIdInvoice(selectedRefNumber || '')
 
   const handleRefNumberClick = (ref_number: string) => {
     setSelectedRefNumber(ref_number)
@@ -57,7 +57,7 @@ console.log({endDate})
   : null;
     const { data: pelanggan } = useGetFilteredContactsByOutletQuery(selectedGudangName as any)
     const selectedPelangganName = selectedWarehouseId 
-    ? pelanggan?.find(contact => Number(contact.id) === selectedWarehouseId)?.name 
+    ? pelanggan?.find(contact => Number(contact._id) === selectedWarehouseId)?.name 
     : null;
   console.log({selectedPelangganName})  
   console.log({gudangs})  
@@ -414,7 +414,7 @@ const filteredTransaksi = transaksi?.filter(
               }
             >
               {contacts?.map((contact) => (
-                <Select.Option key={contact.id} value={contact.id}>
+                <Select.Option key={contact._id} value={contact._id}>
                   {contact.name}
                 </Select.Option>
               ))}

@@ -3,30 +3,7 @@ import apiClient from '../apiClient'
 import { Contact } from '../types/Contact'
 import { QueryCache } from '@tanstack/react-query'
 
-// export const useGetContactsQuery = () =>
-//   useQuery({
-//     queryKey: ['contacts'],
-//     queryFn: async () => {
-//       try {
-//         const response = await apiClient.get<{
-//           data: {
-//             id: string
-//             name: string
-//             group_id: string
-//             group_name: string
-//           }[]
-//         }>('/api/contacts/contacts')
 
-//         // Tambahkan log ini untuk melihat isi response dari API
-//         console.log('Response API:', response)
-
-//         return response.data.data
-//       } catch (error) {
-//         console.error('Error fetching contacts:', error)
-//         throw error
-//       }
-//     },
-//   })
 
 export const useGetContactsQuerysa = (contactId: any | null) =>
   useQuery({
@@ -94,6 +71,19 @@ export const useAddContact = () => {
     (warehouse: Contact) => {
       return apiClient.post<Contact>(`/api/contacts`, warehouse)
     },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['contacts'])
+      },
+    }
+  )
+}
+export const useUpdateContactMutation = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    (murah: Contact) =>
+      apiClient.put<Contact>(`/api/contacts/${murah._id}`, murah), // gunakan _id
     {
       onSuccess: () => {
         queryClient.invalidateQueries(['contacts'])

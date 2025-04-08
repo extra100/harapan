@@ -31,7 +31,11 @@ import barangTetukRouter from './src/routers/barangTetukRouter'
 import pelangganRouter from './src/routers/pelangganRouter'
 import { controlRouter } from './src/routers/controlRouter'
 import pembelianRouter from './src/routers/pembelianRouter'
-
+import { biayaRouter } from './src/routers/biayaRouter'
+import pembiayaanRouter from './src/routers/pembiayaanRouter'
+import pembiayaanHutangRouter from './src/routers/pembiayaanHutangRouter'
+import isiSaldoKasKecilRouter from './src/routers/isiSaldoKasKecilRouter'
+import typeKontakRouter from './src/routers/typeKontakRouter'
 dotenv.config()
 const MONGODB_URI =
   process.env.MONGODB_URI || ''
@@ -62,7 +66,6 @@ app.use(
   })
 );
 
-
 app.use(express.json({ limit: '200mb' }))
 app.use(express.urlencoded({ extended: true, limit: '200mb' }))
 
@@ -72,7 +75,11 @@ app.use('/api/tags', tagRouter)
 app.use('/api/barangs', barangTetukRouter)
 app.use('/api/akunbanks', akunBankRouter)
 app.use('/api/contacts', contactRouter)
+app.use('/api/biayas', biayaRouter)
+
 app.use('/api/pelanggans', pelangganRouter)
+app.use('/api/typekontaks', typeKontakRouter)
+
 app.use('/api/barangs', barangRouter)
 app.use('/api/transactions', transactionRouter)
 app.use('/api/pembelians', pembelianRouter)
@@ -95,6 +102,12 @@ app.use('/api/barters', barangTerjualRouter)
 app.use('/api/perhitungans', perhitunganRouter)
 app.use('/api/ambidetailbarangdarikledos', AmbilDetailBarangDariKledoRouter)
 app.use('/api/ambidetailbarangdarigorets', AmbilDetailBarangDariGoretRouter)
+app.use('/api/pembiayaans', pembiayaanRouter)
+app.use('/api/pembiayaanHutangs', pembiayaanHutangRouter)
+app.use('/api/isiSaldoKasKecils', isiSaldoKasKecilRouter)
+
+
+
 
 console.log(path.join(__dirname, 'frontend/dist'))
 
@@ -103,13 +116,15 @@ console.log(path.join(__dirname, 'frontend/dist'))
 //   res.sendFile(path.join(__dirname, '../../frontend/index.html'))
 // )
 
+
+
 app.use(express.static(path.join(__dirname, '../../frontend/dist')))
 
 app.get('*', (req: Request, res: Response) =>
   res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'))
 )
 
-const PORT: number = parseInt((process.env.PORT || '4000') as string, 10)
+const PORT: number = parseInt((process.env.PORT || '5173') as string, 10)
 
 app.listen(PORT, () => {
   console.log(`server started at http://localhost:${PORT}`)
@@ -117,3 +132,4 @@ app.listen(PORT, () => {
 console.log("Hello, TypeScript!");
 console.log('MONGODB_URI:', MONGODB_URI)
 console.log('PORT:', PORT)
+

@@ -14,7 +14,7 @@ import {
   Switch,
 } from 'antd'
 import { useStokBarang } from './StokBarang'
-import { useIdWarehouse } from './namaWarehouse'
+
 import { useIdNamaBarang } from './NamaBarang'
 import Input from 'antd/es/input/Input'
 import DateRange from '../DateRange'
@@ -22,7 +22,7 @@ import TextArea from 'antd/es/input/TextArea'
 
 import { useIdNamaTag } from './NamaTag'
 import { useIdContact } from './NamaContact'
-import { useFiac } from './Fiac'
+
 import { SaveApi } from './SaveApi'
 import { v4 as uuidv4 } from 'uuid'
 import { useAddTransactionMutation } from '../../hooks/transactionHooks'
@@ -93,7 +93,7 @@ const StockSelectorTable = () => {
 
   const { data: tagDb } = useGetTagsQueryDb()
 
-  const { idWarehouse } = useIdWarehouse()
+
 
   // const { idContact } = useIdContact('')
   const [warehouseName, setWarehouseName] = useState<string | null>(null)
@@ -125,7 +125,7 @@ const StockSelectorTable = () => {
   }
   const { data: contactssss } = useGetFilteredContactsByOutletQuery(warehouseName as any);
   
-  const firstGroupId = contactssss?.[0]?.group_id || null;
+  // const firstGroupId = contactssss?.[0]?.group_id || null;
 // console.log({warehouseName})
   useEffect(() => {
     const name = getWarehouseName()
@@ -590,25 +590,26 @@ console.log({productQuantities})
     setSelectag(value)
   }
 
-  const [selectedContact, setSelectedContact] = useState<number | null>(null)
+  const [selectedContact, setSelectedContact] = useState<any | null>(null)
+  console.log({selectedContact})
   const selectedContactName = selectedContact 
-  ? contacts?.find(contact => contact.id === selectedContact)?.name 
+  ? contacts?.find(contact => contact._id === selectedContact)?.name 
   : null;
 // console.log({selectedContact})
   const handleContactChange = (value: number) => {
     setSelectedContact(value)
   }
 
-  const { idContact } = useIdContact(firstGroupId as any)
+  // const { idContact } = useIdContact(firstGroupId as any)
   // console.log({ idContact })
   const [totalSubtotal, setTotalSubtotal] = useState<number>(0)
 
-  const selectedReceivable = selectedContact
-    ? idContact.find((contact: any) => contact.id === selectedContact)
-        ?.receivable || 0
-    : '--'
-  const nilaiPlatform = gudangdb?.find((contact: any) => contact.name === warehouseName)
-        ?.platform || 0
+  // const selectedReceivable = selectedContact
+  //   ? idContact.find((contact: any) => contact.id === selectedContact)
+  //       ?.receivable || 0
+  //   : '--'
+  // const nilaiPlatform = gudangdb?.find((contact: any) => contact.name === warehouseName)
+  //       ?.platform || 0
 //  console.log({nilaiPlatform})
 
   const formatRupiah = (number: any) => {
@@ -616,18 +617,18 @@ console.log({productQuantities})
       minimumFractionDigits: 0,
     }).format(number)
   }
-  const totalReceivable = idContact
-    ?.filter((contact: any) => contact.group_name === warehouseId)
-    .reduce((total: number, contact: any) => {
-      const receivable = parseFloat(contact.receivable) || 0
-      return total + receivable
-    }, 0)
-    const lastReceivable = totalReceivable +totalSubtotal
+  // const totalReceivable = idContact
+  //   ?.filter((contact: any) => contact.group_name === warehouseId)
+  //   .reduce((total: number, contact: any) => {
+  //     const receivable = parseFloat(contact.receivable) || 0
+  //     return total + receivable
+  //   }, 0)
+  //   const lastReceivable = totalReceivable +totalSubtotal
     
-    const safeTotalReceivable = Number(lastReceivable) || 0;
-    const safeNilaiPlatform = Number(nilaiPlatform) || 0;
+  //   const safeTotalReceivable = Number(lastReceivable) || 0;
+  //   const safeNilaiPlatform = Number(nilaiPlatform) || 0;
     
-    const limitizeTrans = safeTotalReceivable > safeNilaiPlatform;
+  //   const limitizeTrans = safeTotalReceivable > safeNilaiPlatform;
 
   const [formattedTotalSubtotal, setFormattedTotalSubtotal] =
     useState<string>('')
@@ -661,7 +662,7 @@ console.log({productQuantities})
     setPiutang((totalSubtotal || 0) - (amountPaid || 0))
   }, [totalSubtotal, amountPaid])
 
-  const { fiAc } = useFiac()
+
 
   const [selectedBank, setSelectedBank] = useState<any | null>(bankAccountName)
 
@@ -743,7 +744,7 @@ console.log({productQuantities})
   const isSaveDisabledFinal =
     !selectedContact ||
     !bankAccountId ||
-    (termIdSimpan !== 2 && termIdSimpan !== 0 && limitizeTrans) ||
+    (termIdSimpan !== 2 && termIdSimpan !== 0 ) ||
     isSaveDisabled; // Tombol akan dinonaktifkan berdasarkan kondisi
     const updateBarangMutation = useUpdateBarangMutation();
 
@@ -799,13 +800,13 @@ console.log({productQuantities})
     const accountId = accountMap[selectedBank as any];
     setYangMana(accountId);
   
-    const saveNameContact = idContact.reduce((map: any, warehouse: any) => {
-      map[warehouse.id] = warehouse.name;
-      return map;
-    }, {});
-    const saveContactName = saveNameContact[selectedContact as any];
+    // const saveNameContact = idContact.reduce((map: any, warehouse: any) => {
+    //   map[warehouse.id] = warehouse.name;
+    //   return map;
+    // }, {});
+    // const saveContactName = saveNameContact[selectedContact as any];
   
-    const saveNamaGudang = idWarehouse.reduce((map: any, warehouse: any) => {
+    const saveNamaGudang = gudangdb?.reduce((map: any, warehouse: any) => {
       map[warehouse.id] = warehouse.name;
       return map;
     }, {});
@@ -839,7 +840,7 @@ console.log({productQuantities})
       unique_id: uniqueNumber,
       trans_date: formatDate(selectedDates[0]),
       due_date: dueDate,
-      contact_id: selectedContact,
+      contact_id: String(selectedContact),
       sales_id: null,
       include_tax: 0,
       term_id: termIdSimpan || 2,
@@ -880,7 +881,7 @@ console.log({productQuantities})
       witholdings,
       contacts: [
         {
-          id: selectedContact,
+          id: String(selectedContact),
           name: selectedContactName,
         },
       ],
@@ -912,10 +913,10 @@ console.log({productQuantities})
         onSuccess: () => {
           message.success('Transaksi berhasil disimpan!');
           handleUpdateStock()
-          // setTimeout(() => {
-          //   setIsLoading(false);
-          //   navigate(`/getinvbasedondate/${refNumber}`);
-          // }, 3000);
+          setTimeout(() => {
+            setIsLoading(false);
+            navigate(`/detailkledo/${refNumber}`);
+          }, 3000);
         },
         
         onError: (error: any) => {
@@ -948,10 +949,6 @@ console.log({productQuantities})
     }
   }, [isSaveDisabled]);
 
-  
-  
-  
-  
   const [stockQuantities, setStockQuantities] = useState<
     Record<string, number>
   >({})
@@ -1288,52 +1285,58 @@ console.log({productQuantities})
                 <span style={labelStyle}>Nama Pelanggan</span>
                 <span style={labelColonStyle}>:</span>
                 <Select
-  showSearch
-  placeholder="Pilih Pelanggan"
-  style={{ width: '70%' }}
-  optionFilterProp="label"
-  filterOption={(input: any, option: any) =>
-    option?.label?.toString().toLowerCase().includes(input.toLowerCase())
-  }
-  value={selectedContact}
-  onChange={handleContactChange}
->
-  {Array.isArray(contacts) &&
-    contacts
-      .filter((contact) => contact.outlet_name === warehouseId)
-      .map((item) => (
-        <Select.Option
-          key={item.id}
-          value={item.id}
-          label={item.name}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>{item.name}</span>
-            <Badge
-  // count={Number(item.receivable).toLocaleString('id-ID', {
-  //   style: 'currency',
-  //   currency: 'IDR',
-  //   minimumFractionDigits: 0,
-  // })}
-  style={{ backgroundColor: '#52c41a', cursor: 'pointer' }}
-  onClick={() => navigate(`/detailpiutangperkontak?id=${item.id}`)}
-/>
-          </div>
-        </Select.Option>
-      ))}
-</Select>
+                  showSearch
+                  placeholder="Pilih Pelanggan"
+                  style={{ width: '70%' }}
+                  optionFilterProp="label"
+                  filterOption={(input: any, option: any) =>
+                    option?.label?.toString().toLowerCase().includes(input.toLowerCase())
+                  }
+                  value={selectedContact as any}
+                  onChange={handleContactChange}
+                >
+                 {Array.isArray(contacts) &&
+                  contacts
+                    .filter(
+                      (contact) =>
+                        contact.outlet_name === warehouseId &&
+                        contact.id_kontak === '67f0ebdb3f8fdc66b1c1cc2f'
+                    )
+                    .map((item) => (
+                      <Select.Option
+                        key={item._id}
+                        value={item._id}
+                        label={item.name}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <span>{item.name}</span>
+                          <Badge
+                            style={{ backgroundColor: '#52c41a', cursor: 'pointer' }}
+                            onClick={() => navigate(`/detailpiutangperkontak?id=${item._id}`)}
+                          />
+                        </div>
+                      </Select.Option>
+                    ))}
+
+                </Select>
               </Col>
               <Col span={12}>
                 <span style={labelStyle}>Outlet</span>
                 <span style={labelColonStyle}>:</span>
-                <Badge
+                {/* <Badge
         count={lastReceivable?.toLocaleString('id-ID', {
           style: 'currency',
           currency: 'IDR',
           minimumFractionDigits: 0,
         })}
         style={{ backgroundColor: '#52c41a' }}
-      />
+      /> */}
                 <Select
                   placeholder="Warehouse"
                   showSearch
@@ -1349,7 +1352,7 @@ console.log({productQuantities})
                   onChange={handleWarehouseChange}
                   disabled={!user?.isAdmin}
                 >
-                  {idWarehouse?.map((warehouse) => (
+                  {gudangdb?.map((warehouse) => (
                     <Select.Option
                       key={warehouse.id}
                       value={warehouse.id}
@@ -1768,11 +1771,13 @@ console.log({productQuantities})
                         .includes(input.toLowerCase())
                     }
                   >
-                    {akunBanks?.map((e) => (
-                      <Select.Option key={e.id} value={e.name}>
-                        {e.name}
-                      </Select.Option>
-                    ))}
+                   {akunBanks
+    ?.filter((e) => e.id === 1 || e.id === 2) // Hanya ID 1 dan 2
+    .map((e) => (
+      <Select.Option key={e.id} value={e.name}>
+        {e.name}
+      </Select.Option>
+    ))}
                   </Select>
                 </Col>
               </Row>

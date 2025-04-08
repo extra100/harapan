@@ -20,35 +20,30 @@ const ListPembelian: React.FC = () => {
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<any | null>(
     null
   )
-  // console.log({selectedWarehouseId})
   const [startDate, setStartDate] = useState<string | null>(null)
   const [endDate, setEndDate] = useState<string | null>(null)
-// console.log({startDate})
-// console.log({endDate})
   const {
     data: Pembelian,
     isLoading,
     error,
   } = useGetPembeliansQuerymu(selectedWarehouseId, startDate, endDate)
-  console.log({Pembelian})
   const contactIds = Pembelian?.map((item) => item.contact_id);
   const itemNames = useMemo(() => {
     if (!Pembelian || Pembelian.length === 0) {
       return [];
     }
-  
-    // Flatten all `items` arrays from each pembelian and extract `name`
     const allNames = Pembelian.flatMap((pembelian) =>
       pembelian.items.map((item) => item.name)
     );
   
-    // Return unique names
     return [...new Set(allNames)];
   }, [Pembelian]);
+
   const pelengganId = useMemo(() => {
     if (!Pembelian || Pembelian.length === 0) {
       return [];
     }
+
     const allNames = Pembelian.flatMap((pembelian) =>
       pembelian.contacts.map((item) => item.id)
     );
@@ -75,13 +70,13 @@ const ListPembelian: React.FC = () => {
   const selectedGudangName = selectedWarehouseId 
   ? gudangs?.find(contact => Number(contact.id_outlet) === selectedWarehouseId)?.nama_outlet 
   : null;
-    const { data: pelanggan } = useGetFilteredContactsByOutletQuery(selectedGudangName as any)
+    const { data: suppliers } = useGetFilteredContactsByOutletQuery(selectedGudangName as any)
     const selectedPelangganName = selectedWarehouseId 
-    ? contacts?.find(contact => Number(contact.id) === selectedWarehouseId)?.name 
+    ? contacts?.find(contact => Number(contact._id) === selectedWarehouseId)?.name 
     : null;
-
+console.log({suppliers})
   const getContactName = (contactId: string): string => {
-    const contact = contacts?.find((contact: any) => contact.id === contactId);
+    const contact = contacts?.find((contact: any) => contact._id === contactId);
     return contact?.name || 'Unknown';
   };
   const getWarehouseName = (warehouse_id: string | number) => {
@@ -129,6 +124,7 @@ const ListPembelian: React.FC = () => {
       return 'Belum Dibayar'
     }
   }
+  console.log({pelengganId})
  
   const [searchContact, setSearchContact] = useState<string | undefined>()
   const [searchNamaBarang, setSearchNamaBarang] = useState<any | undefined>()
@@ -168,7 +164,7 @@ const filteredData = Pembelian
   })
   ?.filter((contact) => {
     if (searchContact) {
-      return contact.contact_id === Number(searchContact);
+      return contact.contact_id === String(searchContact);
     }
     return true;
   })
@@ -240,10 +236,7 @@ console.log({filteredData})
         </Tooltip>
       ),
       width: 50,
-    },
-    
-    
-    
+    },   
     
     
     
@@ -261,11 +254,15 @@ console.log({filteredData})
       ),
     },
     {
-      title: 'Pelanggan',
-      dataIndex: 'contact_id', 
-      key: 'contact_name',
-      render: (contactId: string) => getContactName(contactId),
+      title: 'Jenis Kontak',
+      dataIndex: 'contact_id',
+      key: 'contact_id',
+      render: (contactId: string) => {
+        const contact = suppliers?.find((item) => item._id === contactId)
+        return contact?.name || '-'
+      },
     },
+    
    
   
 
@@ -495,7 +492,7 @@ console.log({filteredData})
             }
           >
             {pelengganId?.map((id) => {
-              const contact = contacts?.find((contact) => contact.id === id);
+              const contact = contacts?.find((contact) => contact._id === id);
               return (
                 <Select.Option key={id} value={id}>
                   {contact?.name || "Nama Tidak Ditemukan"}

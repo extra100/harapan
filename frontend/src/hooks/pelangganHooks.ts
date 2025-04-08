@@ -2,12 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import apiClient from '../apiClient'
 import { Pelanggan } from '../types/Pelanggan'
+import { Contact } from '../types/Contact'
 
 export const useGetPelanggansQueryDb = () =>
   useQuery({
-    queryKey: ['pelanggans'],
+    queryKey: ['contacts'],
     queryFn: async () =>
-      (await apiClient.get<Pelanggan[]>(`/api/pelanggans`)).data,
+      (await apiClient.get<Pelanggan[]>(`/api/contacts`)).data,
   })
 
 
@@ -29,18 +30,14 @@ export const useGetPelanggansQuery = () =>
     queryFn: async () => {
       const response = await apiClient.get<{
         data: {
-          id: number
+          id_outlet: number
           name: string
-          group_id: number
           phone: string
           address: string
           outlet_name: string
 
 
-          group?: {
-            id: number
-            name: string
-          }
+      
         }[]
         meta: { total: number }
       }>('/api/pelanggans/pelanggans')
@@ -58,16 +55,12 @@ export const useGetThenAddPelanggansQuery = (
       try {
         const response = await apiClient.get<{
           data: {
-            id: number
+            id_outlet: number
             name: string
-            group_id: number
             phone: string
             address: string
             outlet_name: string
-            group?: {
-              id: number
-              name: string
-            }
+           
           }[]
           meta: { total: number }
         }>(`/api/pelanggans?limit=${batchSize}&offset=${offset}`)
@@ -84,11 +77,11 @@ export const useAddPelanggan = () => {
   const queryClient = useQueryClient()
   return useMutation(
     (warehouse: Pelanggan) => {
-      return apiClient.post<Pelanggan>(`/api/pelanggans`, warehouse)
+      return apiClient.post<Pelanggan>(`/api/contacts`, warehouse)
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(['pelanggans'])
+        queryClient.invalidateQueries(['contacts'])
       },
     }
   )
@@ -97,11 +90,11 @@ export const useUpdatePelangganMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation(
-    (murah: Pelanggan) =>
-      apiClient.put<Pelanggan>(`/api/pelanggans/${murah._id}`, murah), // gunakan _id
+    (murah: Contact) =>
+      apiClient.put<Contact>(`/api/contacts/${murah._id}`, murah), // gunakan _id
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(['pelanggans'])
+        queryClient.invalidateQueries(['contacts'])
       },
     }
   )

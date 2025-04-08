@@ -9,6 +9,7 @@ const { Option } = Select;
 
 const WarehouseStockManager: React.FC = () => {
   const { data: barangs, isLoading: loadingBarangs } = useGetBarangsQuery();
+  console.log({barangs})
   const [selectedBarangIds, setSelectedBarangIds] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
 
@@ -60,8 +61,8 @@ const WarehouseStockManager: React.FC = () => {
           dataIndex: id,
           key: id,
           render: (value: any) => {
-            const numericValue = Number(value); // Pastikan dikonversi ke angka
-            return isNaN(numericValue) ? 0 : numericValue; // Format ke 2 desimal
+            const numericValue = Number(value); 
+            return isNaN(numericValue) ? 0 : numericValue; 
           },
         };
       }),
@@ -79,9 +80,9 @@ const WarehouseStockManager: React.FC = () => {
           placeholder="Pilih barang"
           loading={loadingBarangs}
           style={{ width: 300 }}
-          value={selectedBarangIds} // Binding value with selectedBarangIds
-          onChange={(value: string[]) => setSelectedBarangIds(value)} // Update selectedBarangIds on change
-          mode="multiple" // Allow multiple selection
+          value={selectedBarangIds} 
+          onChange={(value: string[]) => setSelectedBarangIds(value)} 
+          mode="multiple" 
           filterOption={(input, option) =>
             (option?.children as any).toLowerCase().includes(input.toLowerCase())
           }
@@ -94,8 +95,8 @@ const WarehouseStockManager: React.FC = () => {
         </Select>
 
         <Button
-          onClick={() => setSelectedBarangIds([])} // Clears the selectedBarangIds state
-          disabled={selectedBarangIds.length === 0} // Disables the button when no item is selected
+          onClick={() => setSelectedBarangIds([])} 
+          disabled={selectedBarangIds.length === 0} 
           style={{ marginLeft: '8px' }}
         >
           Kosongkan Semua 

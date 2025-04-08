@@ -18,7 +18,7 @@ export class Pembelian {
   @prop({ required: true })
   public unique_id!: number
   @prop({ required: true })
-  public contact_id!: number
+  public contact_id!: string
   @prop({ required: true })
   public amount!: number
   @prop({ required: true })
@@ -134,7 +134,7 @@ class Witholding {
 }
 class Contact {
   @prop({ required: true })
-  public id!: number
+  public id!: string
 
   @prop()
   public name!: string

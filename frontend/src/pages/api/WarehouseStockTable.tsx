@@ -90,47 +90,129 @@ const WarehouseStockTable: React.FC = () => {
     if (printRef.current) {
       const printContent = printRef.current.innerHTML;
       const newWindow = window.open('', '', 'width=900,height=600');
+  
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      const dateString = now.toLocaleDateString('id-ID');
+  
+      const outletName = user?.name || 'Semua Outlet';
+      const periode = `${selectedDates[0]} s/d ${selectedDates[1]}`;
+  
       newWindow?.document.write(`
         <html>
           <head>
-            <title>Cetak Stok Gudang</title>
+            <title>Cetak Laporan Stok Gudang</title>
             <style>
-              body { font-family: Arial, sans-serif; }
-              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-              th { background-color: #f2f2f2; }
+              @media print {
+                body {
+                  font-family: Arial, sans-serif;
+                  margin: 0;
+                }
+  
+                .print-header {
+                  position: fixed;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  background-color: white;
+                  padding: 10px 20px;
+                  border-bottom: 1px solid #ccc;
+                  z-index: 999;
+                }
+  
+                .print-body {
+                  margin-top: 140px; /* cukup ruang untuk header */
+                }
+  
+                table {
+                  width: 100%;
+                  border-collapse: collapse;
+                }
+  
+                th, td {
+                  border: 1px solid #ddd;
+                  padding: 8px;
+                  text-align: left;
+                }
+  
+                th {
+                  background-color: #f2f2f2;
+                }
+  
+                h1 {
+                  margin: 0;
+                  font-size: 20px;
+                  text-align: center;
+                }
+              }
             </style>
           </head>
           <body>
-            <h2>Stok Gudang (${selectedDates[0]} - ${selectedDates[1]})</h2>
-            ${printContent}
+            <div class="print-header">
+              <h1>LAPORAN STOK GUDANG</h1>
+              <p>Outlet: ${outletName}</p>
+              <p>Tanggal Cetak: ${dateString} ${timeString}</p>
+              <p>Periode: ${periode}</p>
+            </div>
+            <div class="print-body">
+              ${printContent}
+            </div>
           </body>
         </html>
       `);
+  
       newWindow?.document.close();
+      newWindow?.focus();
       newWindow?.print();
     }
   };
+  
+  
 
   const handleSavePDF = () => {
     const doc = new jsPDF();
-    doc.text(`Stok Gudang (${selectedDates[0]} - ${selectedDates[1]})`, 14, 10);
   
-    // Panggil autoTable setelah memastikan impor sudah benar
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+    const dateString = now.toLocaleDateString('id-ID');
+  
+    const outletName = user?.name || 'Semua Outlet';
+    const periode = `${selectedDates[0]} s/d ${selectedDates[1]}`;
+  
     autoTable(doc, {
       head: [['No', 'Kode', 'Nama Barang', 'Kategori', 'Stok']],
-      body: finalFilteredBarangs?.map((item, index) => [
-        index + 1,
-        item.code,
-        item.name,
-        categoryMap[item.pos_product_category_id] || 'Unknown',
-        item.stock,
-      ]) || [],
+      body:
+        finalFilteredBarangs?.map((item, index) => [
+          index + 1,
+          item.code,
+          item.name,
+          categoryMap[item.pos_product_category_id] || 'Unknown',
+          item.stock,
+        ]) || [],
+      startY: 45,
+      didDrawPage: (data) => {
+        doc.setFontSize(16);
+        doc.text('LAPORAN STOK GUDANG', 105, 15, { align: 'center' });
+  
+        doc.setFontSize(11);
+        doc.text(`Outlet: ${outletName}`, 14, 25);
+        doc.text(`Tanggal Cetak: ${dateString} ${timeString}`, 14, 32);
+        doc.text(`Periode: ${periode}`, 14, 39);
+      },
     });
   
-    doc.save('stok_gudang.pdf');
+    doc.save(`stok_gudang_${selectedDates[0]}_sd_${selectedDates[1]}.pdf`);
     message.success('PDF berhasil disimpan!');
   };
+  
   const [loading, setLoading] = useState(true);
 
 useEffect(() => {

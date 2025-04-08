@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Select } from 'antd'
 import { useStokBarang } from './StokBarang'
 import { useDataBarang } from './NamaBarang'
-import { useIdWarehouse } from './namaWarehouse'
+
 import { useIdNamaTag } from './NamaTag'
 import { useIdContact } from './NamaContact'
 

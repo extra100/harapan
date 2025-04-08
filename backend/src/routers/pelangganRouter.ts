@@ -7,31 +7,11 @@ import expressAsyncHandler from 'express-async-handler'
 import TOKEN from '../token'
 import asyncHandler from 'express-async-handler'
 import { PelangganModel } from '../models/PelangganModel'
-// type any = {
-//   id: number
-//   name: string
-//   group_id: number
-//   phone: string
-//   address: string
-//   group?: {
-//     id: number
-//     name: string
-//   }
+
 // }
 const pelangganRouter = express.Router()
 
-// pelangganRouter.get(
-//   '/',
-//   asyncHandler(async (req, res) => {
-//     try {
-//       const pelanggans = await PelangganModel.find()
-//       res.json(pelanggans)
-//     } catch (error) {
-//       console.error('Server Error:', error)
-//       res.status(500).json({ message: 'Internal Server Error' })
-//     }
-//   })
-// )
+
 pelangganRouter.get(
   '/',
   asyncHandler(async (req: any, res: any) => {
@@ -59,36 +39,6 @@ pelangganRouter.get(
     }
   })
 )
-
-// pelangganRouter.get(
-//   '/',
-//   asyncHandler(async (req, res) => {
-//     try {
-//       // Ambil namaGroup dari query string
-//       const { namaGroup } = req.query
-
-//       console.log('Received namaGroup:', namaGroup)
-
-//       // Jika namaGroup tersedia, lakukan pencarian berdasarkan group.name
-//       const query = namaGroup
-//         ? { 'group.name': { $regex: namaGroup, $options: 'i' } } // Case-insensitive search
-//         : {} // Jika tidak ada namaGroup, ambil semua pelanggan
-
-//       console.log('MongoDB Query:', query)
-
-//       // Ambil data dari database berdasarkan query
-//       const pelanggans = await PelangganModel.find(query)
-
-//       console.log('Query Result:', pelanggans)
-
-//       // Kirim hasil ke frontend
-//       res.json(pelanggans)
-//     } catch (error) {
-//       console.error('Server Error:', error)
-//       res.status(500).json({ message: 'Internal Server Error' })
-//     }
-//   })
-// )
 
 const cache = new NodeCache({ stdTTL: 10000000000000000 })
 
@@ -167,15 +117,12 @@ pelangganRouter.post(
   '/',
   expressAsyncHandler(async (req, res) => {
     const posData = {
-      id: req.body.id,
+      id_outlet: req.body.id_outlet || 123,
       name: req.body.name,
       phone: req.body.phone || '-', 
       address: req.body.address || '-', 
-      group_id: req.body.group_id ?? 0,
-      outlet_name: req.body.group?.name || '-', 
-      group: req.body.group
-        ? { id: req.body.group.id, name: req.body.group.name }
-        : undefined,
+      outlet_name: req.body.outlet_name || '-', 
+     
     }
 
     try {
@@ -189,47 +136,21 @@ pelangganRouter.post(
 )
 
 
-// pelangganRouter.get(
-//   '/pelanggans',
-//   async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//       const perPage = parseInt(req.query.per_page as string) || 15
-
-//       const allPelangganes = await fetchAllPelanggans(perPage)
-
-//       res.json({
-//         success: true,
-//         data: allPelangganes,
-//         meta: {
-//           total: allPelangganes.length,
-//         },
-//       })
-//     } catch (error) {
-//       console.error('Error fetching all pelanggans:', error)
-//       res.status(500).json({ error: 'Internal Server Error' })
-//     }
-//   }
-// )
 pelangganRouter.put(
   '/:edi',
   asyncHandler(async (req: Request, res: Response) => {
-    const { _id, id, name, group_id, group, address, phone } = req.body
+    const { _id, id_outlet, name, outlet_name, id_kontak, address, phone } = req.body
 
     const cumaDisiniUsaha = await PelangganModel.findById(req.params.edi)
 
     if (cumaDisiniUsaha) {
       cumaDisiniUsaha._id = _id || cumaDisiniUsaha._id
-      cumaDisiniUsaha.id = id || cumaDisiniUsaha.id
+      cumaDisiniUsaha.id_outlet = id_outlet || cumaDisiniUsaha.id_outlet
       cumaDisiniUsaha.name = name || cumaDisiniUsaha.name
-      cumaDisiniUsaha.group_id = group_id || cumaDisiniUsaha.group_id
       cumaDisiniUsaha.address = address || cumaDisiniUsaha.address
       cumaDisiniUsaha.phone = phone || cumaDisiniUsaha.phone
-
-      // Handle nested group updates
-      cumaDisiniUsaha.group = {
-        id: group?.id || cumaDisiniUsaha.group?.id,
-        name: group?.name || cumaDisiniUsaha.group?.name,
-      }
+      cumaDisiniUsaha.outlet_name = outlet_name || cumaDisiniUsaha.outlet_name
+      cumaDisiniUsaha.id_kontak = id_kontak || cumaDisiniUsaha.id_kontak
 
       const updateBarang = await cumaDisiniUsaha.save()
       res.json(updateBarang)

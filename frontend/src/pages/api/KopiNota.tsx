@@ -35,8 +35,8 @@ import { saveToApiNextPayment } from './NextPayment'
 import { useReactToPrint } from 'react-to-print'
 import Receipt from './printNota'
 import ReceiptJalan from './ReceiptJalan'
-import { useIdInvoice } from './takeSingleInvoice'
-import { useIdWarehouse } from './namaWarehouse'
+// import { useIdInvoice } from './takeSingleInvoice'
+// import { useIdWarehouse } from './namaWarehouse'
 import {
   useGetContactsQuery,
   useGetContactsQuerysa,
@@ -120,12 +120,12 @@ const KopiNota: React.FC = () => {
   const idMonggo = getPosDetail?._id
   const pesan = getPosDetail?.message
   const { hapusLoading, isDeleted } = useDeleteInvoice(selectedInvoiceId ?? 0)
-  const { getIdAtInvoice } = useIdInvoice(ref_number || '')
+  // const { getIdAtInvoice } = useIdInvoice(ref_number || '')
   // console.log({ getIdAtInvoice })
   // console.log({ ref_number })
-  const invoiceId = getIdAtInvoice ? getIdAtInvoice.id : null
+  const invoiceId = getPosDetail ? getPosDetail.id : null
 
-  const refNumber = getIdAtInvoice ? getIdAtInvoice.ref_number : null
+  const refNumber = getPosDetail ? getPosDetail.memo : null
   const handleDelete = () => {
     if (IdYangAkanDiDelete) {
       setSelectedInvoiceId(IdYangAkanDiDelete)
@@ -238,7 +238,7 @@ console.log({simpanSisaPiutrang})
       }
     }
   }, [allTransactions, contacts])
-  const { idWarehouse } = useIdWarehouse()
+  // const { idWarehouse } = useIdWarehouse()
 
   const [selectedBank, setSelectedBank] = useState<any | null>(null)
 

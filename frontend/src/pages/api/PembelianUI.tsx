@@ -14,7 +14,7 @@ import {
   Switch,
 } from 'antd'
 import { useStokBarang } from './StokBarang'
-import { useIdWarehouse } from './namaWarehouse'
+
 import { useIdNamaBarang } from './NamaBarang'
 import Input from 'antd/es/input/Input'
 import DateRange from '../DateRange'
@@ -22,7 +22,7 @@ import TextArea from 'antd/es/input/TextArea'
 
 import { useIdNamaTag } from './NamaTag'
 import { useIdContact } from './NamaContact'
-import { useFiac } from './Fiac'
+
 import { SaveApi } from './SaveApi'
 import { v4 as uuidv4 } from 'uuid'
 import { useAddPembelianMutation } from '../../hooks/pembelianHooks'
@@ -93,7 +93,7 @@ const PembelianUI = () => {
 
   const { data: tagDb } = useGetTagsQueryDb()
 
-  const { idWarehouse } = useIdWarehouse()
+
 
   // const { idContact } = useIdContact('')
   const [warehouseName, setWarehouseName] = useState<string | null>(null)
@@ -125,7 +125,7 @@ const PembelianUI = () => {
   }
   const { data: contactssss } = useGetFilteredContactsByOutletQuery(warehouseName as any);
   
-  const firstGroupId = contactssss?.[0]?.group_id || null;
+  const firstGroupId = contactssss?.[0]?.id_kontak || null;
 // console.log({warehouseName})
   useEffect(() => {
     const name = getWarehouseName()
@@ -204,8 +204,18 @@ console.log({productQuantities})
       setSelectedWarehouseId(user.id_outlet)
     }
   }, [user])
-  const [dataSource, setDataSource] = useState<any[]>([])
-  console.log({dataSource})
+  const getDataFromLocalStorage = () => {
+    const savedData = localStorage.getItem('userData');
+    return savedData ? JSON.parse(savedData) : [];
+  };
+
+  // Menggunakan state untuk menyimpan data
+  const [dataSource, setDataSource] = useState<any[]>(getDataFromLocalStorage());
+
+  // Menyimpan data ke localStorage setiap kali dataSource berubah
+  useEffect(() => {
+    localStorage.setItem('userData', JSON.stringify(dataSource));
+  }, [dataSource]);
 
   useEffect(() => {
     if (selectedFinanceAccountIds.length > 0 && selectedWarehouseId !== null) {
@@ -590,9 +600,9 @@ console.log({productQuantities})
     setSelectag(value)
   }
 
-  const [selectedContact, setSelectedContact] = useState<number | null>(null)
+  const [selectedContact, setSelectedContact] = useState<any | null>(null)
   const selectedContactName = selectedContact 
-  ? contacts?.find(contact => contact.id === selectedContact)?.name 
+  ? contacts?.find(contact => contact._id === selectedContact)?.name 
   : null;
 // console.log({selectedContact})
   const handleContactChange = (value: number) => {
@@ -661,7 +671,7 @@ console.log({productQuantities})
     setPiutang((totalSubtotal || 0) - (amountPaid || 0))
   }, [totalSubtotal, amountPaid])
 
-  const { fiAc } = useFiac()
+
 
   const [selectedBank, setSelectedBank] = useState<any | null>(bankAccountName)
 
@@ -704,7 +714,7 @@ console.log({productQuantities})
   }
 
   const [refNumber, setRefNumber] = useState<string>('')
-
+console.log({refNumber})
   useEffect(() => {
     if (user) {
       setSelectedWarehouseId(user.id_outlet)
@@ -805,7 +815,7 @@ console.log({productQuantities})
     }, {});
     const saveContactName = saveNameContact[selectedContact as any];
   
-    const saveNamaGudang = idWarehouse.reduce((map: any, warehouse: any) => {
+    const saveNamaGudang = gudangdb?.reduce((map: any, warehouse: any) => {
       map[warehouse.id] = warehouse.name;
       return map;
     }, {});
@@ -912,10 +922,10 @@ console.log({productQuantities})
         onSuccess: () => {
           message.success('Transaksi berhasil disimpan!');
           handleUpdateStock()
-          // setTimeout(() => {
-          //   setIsLoading(false);
-          //   navigate(`/getinvbasedondate/${refNumber}`);
-          // }, 3000);
+          setTimeout(() => {
+            setIsLoading(false);
+            // navigate(`/listpembelian/${refNumber}`);
+          }, 3000);
         },
         
         onError: (error: any) => {
@@ -1291,43 +1301,49 @@ console.log({productQuantities})
           <div style={{ paddingBottom: '0px', border: 'red' }}>
             <Row gutter={16} style={{ marginBottom: '10px' }}>
               <Col span={12}>
-                <span style={labelStyle}>Nama Pelanggan</span>
+                <span style={labelStyle}>Nama Supplier</span>
                 <span style={labelColonStyle}>:</span>
                 <Select
-  showSearch
-  placeholder="Pilih Pelanggan"
-  style={{ width: '70%' }}
-  optionFilterProp="label"
-  filterOption={(input: any, option: any) =>
-    option?.label?.toString().toLowerCase().includes(input.toLowerCase())
-  }
-  value={selectedContact}
-  onChange={handleContactChange}
->
-  {Array.isArray(contacts) &&
-    contacts
-      .filter((contact) => contact.outlet_name === warehouseId)
-      .map((item) => (
-        <Select.Option
-          key={item.id}
-          value={item.id}
-          label={item.name}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>{item.name}</span>
-            <Badge
-  // count={Number(item.receivable).toLocaleString('id-ID', {
-  //   style: 'currency',
-  //   currency: 'IDR',
-  //   minimumFractionDigits: 0,
-  // })}
-  style={{ backgroundColor: '#52c41a', cursor: 'pointer' }}
-  onClick={() => navigate(`/detailpiutangperkontak?id=${item.id}`)}
-/>
-          </div>
-        </Select.Option>
-      ))}
-</Select>
+                  showSearch
+                  placeholder="Pilih Suppplier"
+                  style={{ width: '70%' }}
+                  optionFilterProp="label"
+                  filterOption={(input: any, option: any) =>
+                    option?.label?.toString().toLowerCase().includes(input.toLowerCase())
+                  }
+                  value={selectedContact}
+                  onChange={handleContactChange}
+                >
+                {Array.isArray(contacts) &&
+                   contacts
+                     .filter(
+                       (contact) =>
+                         contact.outlet_name === warehouseId &&
+                         contact.id_kontak === '67f1342a839490b3f3ff81b8'
+                     )
+                     .map((item) => (
+                       <Select.Option
+                         key={item._id}
+                         value={item._id}
+                         label={item.name}
+                       >
+                         <div
+                           style={{
+                             display: 'flex',
+                             justifyContent: 'space-between',
+                             alignItems: 'center',
+                           }}
+                         >
+                           <span>{item.name}</span>
+                           <Badge
+                             style={{ backgroundColor: '#52c41a', cursor: 'pointer' }}
+                             onClick={() => navigate(`/detailpiutangperkontak?id=${item._id}`)}
+                           />
+                         </div>
+                       </Select.Option>
+                     ))}
+ 
+                </Select>
               </Col>
               <Col span={12}>
                 <span style={labelStyle}>Outlet</span>
@@ -1355,7 +1371,7 @@ console.log({productQuantities})
                   onChange={handleWarehouseChange}
                   disabled={!user?.isAdmin}
                 >
-                  {idWarehouse?.map((warehouse) => (
+                  {gudangdb?.map((warehouse) => (
                     <Select.Option
                       key={warehouse.id}
                       value={warehouse.id}

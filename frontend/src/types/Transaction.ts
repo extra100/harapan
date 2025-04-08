@@ -1,10 +1,9 @@
 export type Transaction = {
-  trans_date: string
   jalur: string
   _id: string
   unique_id: number
   due_date: string
-  contact_id: number
+  contact_id: string
   id: number
   sales_id: number | null
   status_id: number
@@ -31,7 +30,6 @@ export type Transaction = {
     amount: number
     price_after_tax: number
     amount_after_tax: number
-    down_payment: number
     tax_manual: number
     discount_percent: number
     discount_amount: number
@@ -41,14 +39,19 @@ export type Transaction = {
   }[]
 
   contacts: {
-    id: number
+    id: string
     name: string
   }[]
   warehouses: {
     warehouse_id: number
     name: string
   }[]
+
+  trans_date: string
+
   witholdings: {
+    down_payment: number
+
     witholding_account_id: number
     id: number
     name: string

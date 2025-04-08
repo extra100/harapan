@@ -33,17 +33,14 @@ typeKontakRouter.post(
     res.status(201).json(justSatuan)
   })
 )
-
 typeKontakRouter.put(
   '/:eid',
   asyncHandler(async (req: Request, res: Response) => {
-    const { id_type_kontak, type_kontak } = req.body
+    const { type_kontak } = req.body
 
     const onlyHereSsatuan = await TypeKontakModel.findById(req.params.eid)
 
     if (onlyHereSsatuan) {
-      onlyHereSsatuan.id_type_kontak =
-        id_type_kontak || onlyHereSsatuan.id_type_kontak
       onlyHereSsatuan.type_kontak = type_kontak || onlyHereSsatuan.type_kontak
 
       const updatedSatuan = await onlyHereSsatuan.save()
@@ -53,6 +50,7 @@ typeKontakRouter.put(
     }
   })
 )
+
 
 typeKontakRouter.delete(
   '/:idol',

@@ -24,18 +24,18 @@ const TypeKontakForm: React.FC = () => {
 
     if (data && Array.isArray(data)) {
       const lastRecord = [...data]
-        .sort((a, b) => a.id_type_kontak.localeCompare(b.id_type_kontak))
+        .sort((a, b) => a._id.localeCompare(b._id))
         .pop()
 
       if (lastRecord) {
         const lastIdNumber = Number(
-          lastRecord.id_type_kontak.replace(/[^0-9]/g, '')
+          lastRecord._id.replace(/[^0-9]/g, '')
         )
         const nextId = lastIdNumber + 1
         const paddedId = nextId.toString().padStart(5, '0')
-        form.setFieldsValue({ id_type_kontak: `Tyko-${paddedId}` })
+        form.setFieldsValue({ _id: `Tyko-${paddedId}` })
       } else {
-        form.setFieldsValue({ id_type_kontak: `Tyko-00001` })
+        form.setFieldsValue({ _id: `Tyko-00001` })
       }
     }
   }
@@ -50,7 +50,7 @@ const TypeKontakForm: React.FC = () => {
       const row = (await form.validateFields()) as TypeKontak
       const newTypeKontak: TypeKontak = {
         _id: row._id,
-        id_type_kontak: row.id_type_kontak,
+        id_outlet: row.id_outlet,
         type_kontak: row.type_kontak,
       }
 
@@ -102,7 +102,7 @@ const TypeKontakForm: React.FC = () => {
         </Form.Item>
 
         <Form.Item
-          name="id_type_kontak"
+          name="_id"
           labelCol={{ span: 6 }}
           wrapperCol={{ span: 15 }}
           rules={[

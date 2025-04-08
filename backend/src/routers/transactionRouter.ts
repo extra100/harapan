@@ -50,50 +50,7 @@ transactionRouter.get(
   })
 );
 
-transactionRouter.get(
-  '/qty-summary',
-  asyncHandler(async (req: Request, res: Response) => {
-    const { start_date, end_date } = req.query;
 
-    const matchStage: any = {
-      reason_id: "unvoid", // ✅ Filter reason_id langsung dari transaksi
-    };
-
-    if (start_date && end_date) {
-      matchStage.trans_date = {
-        $gte: start_date,
-        $lte: end_date,
-      };
-    }
-
-    const discountSummary = await TransactionModel.aggregate([
-      { $match: matchStage }, // ✅ Filter hanya transaksi dengan reason_id "unvoid"
-      { $unwind: "$items" }, // Membuka array items
-      {
-        $group: {
-          _id: {
-            warehouse_id: "$warehouse_id",
-            finance_account_id: "$items.finance_account_id",
-          },
-          total_qty: { $sum: "$items.qty" },
-          invoice_ids: { $addToSet: "$_id" }, // Mengumpulkan transaksi unik (nota)
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          warehouse_id: "$_id.warehouse_id",
-          qty: "$_id.qty",
-          finance_account_id: "$_id.finance_account_id",
-          total_qty: 1,
-        },
-      },
-      { $sort: { warehouse_id: 1, qty: 1 } },
-    ]);
-
-    res.json(discountSummary);
-  })
-);
 // transactionRouter.get(
 //   "/qty-summary",
 //   asyncHandler(async (req: Request, res: Response) => {
@@ -846,7 +803,50 @@ export default transactionRouter
 //     res.json(updatedTransaction)
 //   })
 // )
-transactionRouter.put(
+transactionRouter.get(
+  '/discount-summary',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { start_date, end_date } = req.query;
+
+    const matchStage: any = {
+      reason_id: "unvoid", // ✅ Filter reason_id langsung dari transaksi
+    };
+
+    if (start_date && end_date) {
+      matchStage.trans_date = {
+        $gte: start_date,
+        $lte: end_date,
+      };
+    }
+
+    const discountSummary = await TransactionModel.aggregate([
+      { $match: matchStage }, // ✅ Filter hanya transaksi dengan reason_id "unvoid"
+      { $unwind: "$items" }, // Membuka array items
+      {
+        $group: {
+          _id: {
+            warehouse_id: "$warehouse_id",
+            discount_percent: "$items.discount_percent",
+          },
+          total_discount_amount: { $sum: "$items.discount_amount" },
+          invoice_ids: { $addToSet: "$_id" }, // Mengumpulkan transaksi unik (nota)
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          warehouse_id: "$_id.warehouse_id",
+          discount_percent: "$_id.discount_percent",
+          total_discount_amount: 1,
+          invoice_count: { $size: "$invoice_ids" }, // Menghitung jumlah nota unik
+        },
+      },
+      { $sort: { warehouse_id: 1, discount_percent: 1 } },
+    ]);
+
+    res.json(discountSummary);
+  })
+);transactionRouter.put(
   '/:ref_number/witholdings/:witholdingId',
   asyncHandler(async (req: any, res: any) => {
     const { ref_number, witholdingId } = req.params
@@ -886,54 +886,118 @@ transactionRouter.put(
   })
 )
 
-
 transactionRouter.get(
-  "/withholding-summary",
-  asyncHandler(async (req: any, res: any) => {
-    console.log("Query params:", req.query); // ✅ Debugging
-
+  '/qty-summary',
+  asyncHandler(async (req: Request, res: Response) => {
     const { start_date, end_date } = req.query;
-    if (!start_date || !end_date) {
-      return res.status(400).json({ message: "Tanggal harus diisi" });
+
+    const matchStage: any = {
+      reason_id: "unvoid", // ✅ Filter reason_id langsung dari transaksi
+    };
+
+    if (start_date && end_date) {
+      matchStage.trans_date = {
+        $gte: start_date,
+        $lte: end_date,
+      };
     }
 
-    const startDate = new Date(start_date as string);
-    const endDate = new Date(end_date as string);
-
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return res.status(400).json({ message: "Format tanggal tidak valid" });
-    }
-
-    try {
-      const withholdingSummary = await TransactionModel.aggregate([
-        {
-          $match: {
-            trans_date: {
-              $gte: startDate,
-              $lte: endDate,
-            },
+    const discountSummary = await TransactionModel.aggregate([
+      { $match: matchStage }, // ✅ Filter hanya transaksi dengan reason_id "unvoid"
+      { $unwind: "$items" }, // Membuka array items
+      {
+        $group: {
+          _id: {
+            warehouse_id: "$warehouse_id",
+            finance_account_id: "$items.finance_account_id",
           },
+          total_qty: { $sum: "$items.qty" },
+          invoice_ids: { $addToSet: "$_id" }, // Mengumpulkan transaksi unik (nota)
         },
-        { $unwind: "$withholdings" },
-        {
-          $group: {
-            _id: "$withholdings.withholding_account_id",
-            total_withholding: { $sum: "$withholdings.withholding_amount" },
-          },
+      },
+      {
+        $project: {
+          _id: 0,
+          warehouse_id: "$_id.warehouse_id",
+          qty: "$_id.qty",
+          finance_account_id: "$_id.finance_account_id",
+          total_qty: 1,
         },
-      ]);
+      },
+      { $sort: { warehouse_id: 1, qty: 1 } },
+    ]);
 
-      console.log("MongoDB Withholding Summary:", withholdingSummary); // ✅ Debug log
-
-      if (!withholdingSummary || withholdingSummary.length === 0) {
-        return res.status(404).json({ message: "Data withholding tidak ditemukan" });
-      }
-
-      res.json(withholdingSummary);
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({ message: "Terjadi kesalahan server" });
-    }
+    res.json(discountSummary);
   })
 );
+// transactionRouter.get(
+//   "/summary/down-payment",
+//   asyncHandler(async (req: Request, res: Response) => {
+//     const { start_date, end_date } = req.query;
+    
+//     // Jika diberikan rentang tanggal, gunakan $elemMatch untuk memfilter dokumen 
+//     // yang memiliki elemen witholdings dengan trans_date di rentang tersebut.
+//     let query: any = {};
+//     if (start_date && end_date) {
+//       query = {
+//         witholdings: {
+//           $elemMatch: {
+//             trans_date: { $gte: start_date, $lte: end_date },
+//           },
+//         },
+//       };
+//     }
+    
+//     // Cari transaksi dengan proyeksi hanya field witholdings dan trans_date (opsional)
+//     const transactions = await TransactionModel.find(query, {
+//       witholdings: 1,
+//       trans_date: 1,
+//       _id: 0,
+//     }).lean();
 
+//     // Flatten: Ambil seluruh elemen witholdings dari masing-masing transaksi
+//     const flattened = transactions.flatMap((t: any) => t.witholdings || []);
+    
+//     res.json(flattened);
+//   })
+// );
+
+transactionRouter.get(
+  "/summary/down-payment",
+  asyncHandler(async (req: Request, res: Response) => {
+    const { start_date, end_date } = req.query;
+
+    let query: any = {};
+    if (start_date && end_date) {
+      query = {
+        witholdings: {
+          $elemMatch: {
+            trans_date: { $gte: start_date, $lte: end_date },
+          },
+        },
+      };
+    }
+
+    // Ambil transaksi dengan witholdings + trans_date utama + memo
+    const transactions = await TransactionModel.find(query, {
+      witholdings: 1,
+      trans_date: 1, // Transaksi utama
+      memo: 1,
+      contact_id: 1, // ✅ Tambahkan ini
+    }).lean();
+    
+
+    // Flatten data withholding dan tambahin trans_date utama
+    const flattened = transactions.flatMap((t: any) =>
+      (t.witholdings || []).map((w: any) => ({
+        ...w,
+        memo: t.memo || "-", // Biar nggak null
+        trans_date_main: t.trans_date, // Transaksi utama
+        trans_date_witholding: w.trans_date, // Dari withholding
+        contact_id: t.contact_id || "Unknown", // ✅ Tambahkan ini
+      }))
+    );
+    
+    res.json(flattened);
+  })
+);

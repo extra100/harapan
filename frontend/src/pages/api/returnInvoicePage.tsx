@@ -28,13 +28,13 @@ import { AiOutlinePrinter } from 'react-icons/ai'
 import PosPrintKomponent from './PosPrintCok'
 import moment from 'moment'
 import dayjs from 'dayjs'
-import { useFiac } from './Fiac'
+
 import { saveToApiNextPayment } from './NextPayment'
 import { useReactToPrint } from 'react-to-print'
 import Receipt from './printNota'
 import ReceiptJalan from './ReceiptJalan'
-import { useIdInvoice } from './takeSingleInvoice'
-import { useIdWarehouse } from './namaWarehouse'
+// import { useIdInvoice } from './takeSingleInvoice'
+
 import { useGetContactsQuery } from '../../hooks/contactHooks'
 import { useGetAkunBanksQueryDb } from '../../hooks/akunBankHooks'
 import { useGetWarehousesQuery } from '../../hooks/warehouseHooks'
@@ -88,11 +88,11 @@ const Aneh: React.FC = () => {
   const { data: akunBanks } = useGetAkunBanksQueryDb()
 
 
-  const { getIdAtInvoice } = useIdInvoice(ref_number || '')
+  // const { getIdAtInvoice } = useIdInvoice(ref_number || '')
 
-  const invoiceId = getIdAtInvoice ? getIdAtInvoice.id : null
+  const invoiceId = getPosDetail ? getPosDetail.id : null
 
-  const refNumber = getIdAtInvoice ? getIdAtInvoice.ref_number : null
+  const refNumber = getPosDetail ? getPosDetail.memo : null
 
   // const contactName = getPosDetail?.contacts?.[0]?.name
   const contactId = getPosDetail?.contacts?.[0]?.id
@@ -142,7 +142,7 @@ const Aneh: React.FC = () => {
   }, 0)
   const subTotal = totalDiscount + amount
 
-  const { fiAc } = useFiac()
+
 
   const [amountPaid, setAmountPaid] = useState<number | null>(null)
   const formatNumber = (num: number) => {
@@ -170,7 +170,7 @@ const Aneh: React.FC = () => {
       }
     }
   }, [allTransactions, contacts])
-  const { idWarehouse } = useIdWarehouse()
+
 
   const [selectedBank, setSelectedBank] = useState<any | null>(null)
 
@@ -181,12 +181,12 @@ const Aneh: React.FC = () => {
   const navigate = useNavigate()
 
   const handleFormSubmit = (values: any) => {
-    const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
-      map[warehouse.name] = warehouse.id
-      return map
-    }, {})
+    // const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
+    //   map[warehouse.name] = warehouse.id
+    //   return map
+    // }, {})
 
-    const accountId = accountMap[selectedBank as any]
+    // const accountId = accountMap[selectedBank as any]
 
     if (refNumber) {
       const invoiceData = {
@@ -197,7 +197,7 @@ const Aneh: React.FC = () => {
         trans_date: formatDate(selectedDates),
         withholdings: [
           {
-            witholding_account_id: accountId || bankAccountId,
+            witholding_account_id: bankAccountId,
             name: selectedBank || bankAccountName,
             down_payment: amountPaid || 0,
             witholding_percent: 0,
@@ -277,7 +277,7 @@ const Aneh: React.FC = () => {
       attachment: [],
       business_tran_id: idDariSDBEK,
       id: idDariSDBEK,
-      witholding_account_id: accountId || bankAccountId,
+      witholding_account_id: bankAccountId,
       witholding_amount: hutang,
       witholding_percent: 0,
       warehouse_id: warehouseNomor,
@@ -309,7 +309,7 @@ const Aneh: React.FC = () => {
         })) || [],
       withholdings: [
         {
-          witholding_account_id: accountId || bankAccountId,
+          witholding_account_id: bankAccountId,
           name: selectedBank || bankAccountName,
           down_payment: amountPaid || 0,
           witholding_percent: 0,

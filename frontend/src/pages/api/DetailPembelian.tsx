@@ -20,7 +20,6 @@ import {
   Badge,
 } from 'antd'
 import {
-  useAddPembelianMutation,
   useGetPembelianByIdQuery,
   useUpdatePembelianMutation,
 } from '../../hooks/pembelianHooks'
@@ -30,13 +29,13 @@ import { AiOutlinePrinter } from 'react-icons/ai'
 import PosPrintKomponent from './PosPrintCok'
 import moment from 'moment'
 import dayjs from 'dayjs'
-import { useFiac } from './Fiac'
+
 import { saveToApiNextPayment } from './NextPayment'
 import { useReactToPrint } from 'react-to-print'
 import Receipt from './printNota'
 import ReceiptJalan from './ReceiptJalan'
-import { useIdInvoice } from './takeSingleInvoice'
-import { useIdWarehouse } from './namaWarehouse'
+// import { useIdInvoice } from './takeSingleInvoice'
+
 import {
   useGetContactsQuery,
   useGetContactsQuerysa,
@@ -48,7 +47,7 @@ import { NumericFormat } from 'react-number-format'
 
 import type { Dayjs } from 'dayjs'
 import { useVoidInvoice } from './voidInvoice'
-import { Pembelian } from '../../types/Pembelian'
+import { Transaction } from '../../types/Transaction'
 import { useUnvoidInvoice } from './unvoidInvoice'
 import SingleDate from '../SingleDate'
 
@@ -68,6 +67,7 @@ import { useDeleteInvoice } from './DeleteInvoicePenjualan'
 import { useRedData } from '../../badgeMessage'
 import { useGetBarangsQuery, useUpdateBarangMutation } from '../../hooks/barangHooks'
 import { useQueryClient } from '@tanstack/react-query'
+import { Pembelian } from '../../types/Pembelian'
 
 const { Title, Text } = Typography
 const { Option } = Select
@@ -88,52 +88,46 @@ const DetailPembelian: React.FC = () => {
 
   const updatePosMutation = useUpdatePembelianMutation()
   //
-  const { data: allPembelians } = useGetPembelianByIdQuery(
+  const { data: allTransactions } = useGetPembelianByIdQuery(
     ref_number as string
   )
 
   
   const { data: allreturns } = useGetReturnByIdQuery(ref_number as string)
-  // console.log({ allreturns })
-  const { data: contacts } = useGetContactsQuery()
+
   const { data: akunBanks } = useGetAkunBanksQueryDb()
 console.log({akunBanks})
 
 
-  const getPosDetail = allPembelians?.find(
-    (pembelian: any) => pembelian.ref_number === ref_number
+  const getPosDetail = allTransactions?.find(
+    (transaction: any) => transaction.ref_number === ref_number
   )
-
+  const idPelanggan = getPosDetail?.contacts?.[0]?.id;
+  const { data: contacts } = useGetContactsQuery()
+  const namaSupplier = contacts?.find(
+    (contact: any) => contact._id === idPelanggan
+  )?.name;
   const getReturDetail = allreturns?.filter(
     (balikin: any) =>
       balikin.memo === ref_number && 
       balikin.items?.some((item: any) => item.qty > 0)
   );
-  
-  // console.log({ getReturDetail })
   const totalAmountRetur = getReturDetail
-  ?.flatMap((balikin: any) => balikin.items || []) // Menggabungkan semua items
-  .reduce((sum: number, item: any) => sum + (item.amount || 0), 0) || 0; // Menjumlahkan amount
+  ?.flatMap((balikin: any) => balikin.items || [])
+  .reduce((sum: number, item: any) => sum + (item.amount || 0), 0) || 0;
 
-// console.log('Total Amount:', totalAmountRetur);
 
-  //delete
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(
     null
   )
   const IdYangAkanDiDelete = getPosDetail?.id
   const memorandum = getPosDetail?.memo || ref_number
   const ketVoid = getPosDetail?.reason_id
-  // console.log({ memorandum })
   const idMonggo = getPosDetail?._id
   const pesan = getPosDetail?.message
   const { hapusLoading, isDeleted } = useDeleteInvoice(selectedInvoiceId ?? 0)
-  const { getIdAtInvoice } = useIdInvoice(ref_number || '')
-  // console.log({ getIdAtInvoice })
-  // console.log({ ref_number })
-  const invoiceId = getIdAtInvoice ? getIdAtInvoice.id : null
 
-  const refNumber = getIdAtInvoice ? getIdAtInvoice.ref_number : null
+  const refNumber = getPosDetail ? getPosDetail.memo : null
   const handleDelete = () => {
     if (IdYangAkanDiDelete) {
       setSelectedInvoiceId(IdYangAkanDiDelete)
@@ -156,19 +150,16 @@ console.log({akunBanks})
   const idididid = getPosDetail?.items?.[0]?.id
   const amountsPerBaris = items.map((item: any) => {
     const amount = item.amount || 0
-    const qty = item.qty || 1 // Pastikan qty tidak nol
+    const qty = item.qty || 1 
     return qty > 0 ? amount / qty : 0
   })
 
   const { data: contactjir } = useGetContactsQuerysa(kontakId as any)
   const kontakringan = contactjir?.[0]?.name
 
-  // console.log('aneh kembe bismillah 212', kontakringan)
-  // console.log('dvSBSRFb kontak', contactjir)
-
   const totalAmountPerBaris = items.reduce((total: number, item: any) => {
     const amount = item.price || 0
-    const qty = item.qty || 1 // Pastikan qty tidak nol
+    const qty = item.qty || 1 
     const amountPerBaris = qty > 0 ? amount * qty : 0
     return total + amountPerBaris
   }, 0)
@@ -201,7 +192,7 @@ console.log({akunBanks})
   const finalTotalAgterRetur = amount - (totalAmountRetur || 0);
   const finalDueAfterRerur = due - (totalAmountRetur || 0);
 
-  const { fiAc } = useFiac()
+
 
   const [amountPaid, setAmountPaid] = useState<number | null>(null)
   console.log({amountPaid})
@@ -232,15 +223,15 @@ console.log({akunBanks})
   const [contactName, setContactName] = useState<string>('Unknown Contact')
 
   useEffect(() => {
-    if (allPembelians && contacts) {
+    if (allTransactions && contacts) {
       const contactId = getPosDetail?.contacts?.[0]?.id
       const contact = contacts.find((c: any) => c.id === contactId)
       if (contact) {
         setContactName(contact.name)
       }
     }
-  }, [allPembelians, contacts])
-  const { idWarehouse } = useIdWarehouse()
+  }, [allTransactions, contacts])
+
 
   const [selectedBank, setSelectedBank] = useState<any | null>(null)
   const bankId = akunBanks?.find((b) => b.name === selectedBank)?.id || ""
@@ -264,8 +255,8 @@ const handleVoid = (values: any) => {
     return;
   }
 
-  const existingInvoice = allPembelians?.find(
-    (pembelian) => pembelian.id === langka
+  const existingInvoice = allTransactions?.find(
+    (transaction) => transaction.id === langka
   );
 
   if (!existingInvoice) {
@@ -357,8 +348,8 @@ const handleVoid = (values: any) => {
       return;
     }
   
-    const existingInvoice = allPembelians?.find(
-      (pembelian) => pembelian.id === langka
+    const existingInvoice = allTransactions?.find(
+      (transaction) => transaction.id === langka
     );
   
     if (!existingInvoice) {
@@ -440,12 +431,12 @@ const handleVoid = (values: any) => {
   
 
   const handleFormSubmit = async (values: any) => {
-    const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
-      map[warehouse.name] = warehouse.id;
-      return map;
-    }, {});
+    // const accountMap = fiAc?.children?.reduce((map: any, warehouse: any) => {
+    //   map[warehouse.name] = warehouse.id;
+    //   return map;
+    // }, {});
   
-    const accountId = accountMap[selectedBank as any];
+    // const accountId = accountMap[selectedBank as any];
   
     if (!langka) {
       console.error("No valid ref_number found.");
@@ -457,8 +448,8 @@ const handleVoid = (values: any) => {
     try {
       navigate(`/detailpembelian/${memorandum}`);
   
-      const existingInvoice = allPembelians?.find(
-        (pembelian) => pembelian.id === langka
+      const existingInvoice = allTransactions?.find(
+        (transaction) => transaction.id === langka
       );
   
       if (!existingInvoice) {
@@ -820,10 +811,10 @@ const handleVoid = (values: any) => {
         <Row>
           <Col span={12}>
             <div style={{ marginBottom: '0px' }}>
-              <Text strong>Pelanggan:</Text>
+              <Text strong>Supplier:</Text>
             </div>
             <Title level={5} style={{ marginBottom: 0 }}>
-              {kontakringan}
+              {namaSupplier}
             </Title>
           </Col>
           <Col span={12}>
@@ -872,7 +863,7 @@ const handleVoid = (values: any) => {
         </Row>
       </Card>
 
-      {/* Pembelian Table */}
+      {/* Transaction Table */}
       <Table
         dataSource={[
           ...(getPosDetail?.items || []),
@@ -958,7 +949,7 @@ const handleVoid = (values: any) => {
                 .map((witholding: any, index: number) => (
                   <Row key={index} style={{ marginTop: '8px' }}>
                     <Col span={12} style={{ textAlign: 'left' }}>
-                      <a href={`/editpembayaran/${memorandum}`}>
+                      <a href={`/editpembayaranbeli/${memorandum}`}>
                         <Text strong style={{ color: 'blue' }}
                         >{witholding.name}</Text>
                       </a>

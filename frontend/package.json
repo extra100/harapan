@@ -19,6 +19,7 @@
     "axios": "^1.2.3",
     "bootstrap": "^5.2.3",
     "csv-parser": "^3.0.0",
+    "harapan": "file:..",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
     "lodash": "^4.17.21",

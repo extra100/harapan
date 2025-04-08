@@ -60,16 +60,13 @@ export function useIdNamaPelanggan() {
 
         // Mapping and formatting data with fallback values
         const formattedData: Pelanggan[] = bankTransData.data.data
-          .filter((item: Pelanggan) => item.id && item.name) // Ensure essential fields
+          .filter((item: Pelanggan) => item.id_kontak && item.name) // Ensure essential fields
           .map((item: Pelanggan) => ({
-            id: item.id,
+            id_kontak: item.id_kontak,
             name: item.name,
             phone: item.phone || '-',
             address: item.address || '-',
-            group_id: item.group_id ?? 0,
-            group: item.group
-              ? { id: item.group.id, name: item.group.name }
-              : undefined, // Define group if it exists
+           
           }))
 
         setIdDataPelanggan(formattedData)

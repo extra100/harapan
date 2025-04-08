@@ -3,7 +3,7 @@ import { Button, Col, DatePicker, Input, Row, Select, Table, Tag, Tooltip } from
 
 import { useGetTransaksisQuery, useGetTransactionsByContactQuery } from '../../hooks/transactionHooks'
 import { useGetTransaksisQuerymu } from '../../hooks/transactionHooks'
-import { useIdInvoice } from './takeSingleInvoice'
+// import { useIdInvoice } from './takeSingleInvoice'
 import UserContext from '../../contexts/UserContext'
 import { useGetContactsQuery } from '../../hooks/contactHooks'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -65,7 +65,7 @@ const ListTransaksi: React.FC = () => {
   const [selectedRefNumber, setSelectedRefNumber] = useState<string | null>(
     null
   )
-  const { getIdAtInvoice } = useIdInvoice(selectedRefNumber || '')
+  // const { getIdAtInvoice } = useIdInvoice(selectedRefNumber || '')
 
   const handleRefNumberClick = (ref_number: string) => {
     setSelectedRefNumber(ref_number)
@@ -76,14 +76,19 @@ const ListTransaksi: React.FC = () => {
   ? gudangs?.find(contact => Number(contact.id_outlet) === selectedWarehouseId)?.nama_outlet 
   : null;
     const { data: pelanggan } = useGetFilteredContactsByOutletQuery(selectedGudangName as any)
+   console.log({pelanggan}) 
     const selectedPelangganName = selectedWarehouseId 
-    ? contacts?.find(contact => Number(contact.id) === selectedWarehouseId)?.name 
+    ? contacts?.find(contact => Number(contact._id) === selectedWarehouseId)?.name 
     : null;
 
-  const getContactName = (contactId: string): string => {
-    const contact = contacts?.find((contact: any) => contact.id === contactId);
-    return contact?.name || 'Unknown';
-  };
+    const getContactName = (contactId: string): string => {
+      if (!contacts || contacts.length === 0) return "Unknown";
+  
+      const contact = contacts.find((contact: any) => contact._id === contactId);
+  
+      return contact ? contact.name : "Unknown";
+    };
+  
   const getWarehouseName = (warehouse_id: string | number) => {
     const warehouse = gudangs?.find(
       (gudang) => String(gudang.id_outlet) === String(warehouse_id)
@@ -166,7 +171,7 @@ const filteredData = transaksi
     }
     return true;
   })
-  ?.filter((contact) => {
+  ?.filter((contact: any) => {
     if (searchContact) {
       return contact.contact_id === Number(searchContact);
     }
@@ -261,11 +266,15 @@ console.log({filteredData})
       ),
     },
     {
-      title: 'Pelanggan',
-      dataIndex: 'contact_id', 
-      key: 'contact_name',
-      render: (contactId: string) => getContactName(contactId),
+      title: 'Jenis Kontak',
+      dataIndex: 'contact_id',
+      key: 'contact_id',
+      render: (contactId: string) => {
+        const contact = pelanggan?.find((item) => item._id === contactId)
+        return contact?.name || '-'
+      },
     },
+    
    
     {
       title: 'Outlet',
@@ -465,7 +474,7 @@ console.log({filteredData})
             }
           >
             {pelengganId?.map((id) => {
-              const contact = contacts?.find((contact) => contact.id === id);
+              const contact = contacts?.find((contact) => contact._id === id);
               return (
                 <Select.Option key={id} value={id}>
                   {contact?.name || "Nama Tidak Ditemukan"}
