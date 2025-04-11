@@ -536,7 +536,7 @@ function App() {
                 to="/tabelpelanggans"
                 onClick={handleDataKategoriClick}
               >
-                <NavDropdown.Item>Data Pelanggan ayokllah</NavDropdown.Item>
+                <NavDropdown.Item>Data Pelanggan ampuuuun</NavDropdown.Item>
               </LinkContainer>
             </ListGroup.Item>
             <ListGroup.Item style={listItemStyle}>
