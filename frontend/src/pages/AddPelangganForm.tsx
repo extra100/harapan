@@ -85,17 +85,19 @@ const AddPelangganForm = () => {
           label="Jenis Kontak"
           rules={[{ required: true, message: 'Jenis Kontak harus dipilih!' }]}
         >
-          <Select
-            placeholder="Pilih Jenis Kontak"
-            loading={!typeKontak}
-            allowClear
-          >
-            {typeKontak?.map((item) => (
-              <Option key={item._id} value={item._id}>
-                {item.type_kontak}
-              </Option>
-            ))}
-          </Select>
+         <Select
+  placeholder="Pilih Jenis Kontak"
+  loading={!Array.isArray(typeKontak)}
+  allowClear
+>
+  {Array.isArray(typeKontak) &&
+    typeKontak.map((item: any) => (
+      <Option key={item._id} value={item._id}>
+        {item.type_kontak}
+      </Option>
+    ))}
+</Select>
+
         </Form.Item>
 
         <Form.Item>

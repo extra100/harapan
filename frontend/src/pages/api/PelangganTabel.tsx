@@ -65,7 +65,7 @@
     }
     const { data: typeKontak } = useGetTypeKontaksQuery()
     
-    
+    console.log({typeKontak})
 
     const columns = [
       {
@@ -83,9 +83,11 @@
         dataIndex: 'id_kontak',
         key: 'id_kontak',
         render: (id_kontak: string) => {
-          const type = typeKontak?.find((item) => item._id === id_kontak)
-          return type ? type.type_kontak : '-'
+          if (!Array.isArray(typeKontak)) return '-'
+          const type = typeKontak.find((item: any) => item._id === id_kontak)
+          return type?.type_kontak || '-'
         }
+        
       },      
       {
         title: 'No. Tlpn',
@@ -202,11 +204,13 @@
           placeholder="Pilih Jenis Kontak"
           loading={!typeKontak}
         >
-          {typeKontak?.map((item) => (
-            <Select.Option key={item._id} value={item._id}>
-              {item.type_kontak}
-            </Select.Option>
-          ))}
+          {Array.isArray(typeKontak) &&
+  typeKontak.map((item) => (
+    <Select.Option key={item._id} value={item._id}>
+      {item.type_kontak}
+    </Select.Option>
+))}
+
         </Select>
       </Form.Item>
     </Form>

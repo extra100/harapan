@@ -243,7 +243,7 @@ function App() {
                   <Link className="nav-link header-link p-1 px-3" to={`/pos`}>
                     POS
                   </Link> */}
-                  <Link className="nav-link header-link p-1 px-3" to={`/tmg`}>
+                  {/* <Link className="nav-link header-link p-1 px-3" to={`/tmg`}>
                     Transfer Gudang
                   </Link>
                   <Link
@@ -251,7 +251,7 @@ function App() {
                     to={`/listsiapvalidasi`}
                   >
                     History Transfer
-                  </Link>
+                  </Link> */}
                   <Link className="nav-link header-link p-1 px-3" to={`/ibo`}>
                     Nota Baru
                   </Link>
@@ -277,14 +277,14 @@ function App() {
                     List Pembelian
                   </Link>
 
-
+{/* 
                   <Link
                     className="nav-link header-link p-1 px-3"
                     to={`/filteriddangroupidcontact`}
                   >
                     Laporan Piutang
-                  </Link>
-                  <Link
+                  </Link> */}
+                  {/* <Link
                     className="nav-link header-link p-1 px-3"
                     to={`/semuastokoutlet`}
                   >
@@ -296,7 +296,7 @@ function App() {
                   >
                     <CompareTransfers />
                     .
-                  </Link>
+                  </Link> */}
              
              
                 </div>
@@ -459,7 +459,7 @@ function App() {
                 </Button>
               </div>
             </ListGroup.Item>
-            <ListGroup.Item style={listItemStyle}>
+            {/* <ListGroup.Item style={listItemStyle}>
               <AiOutlineBgColors size={20} style={iconStyle} />
               <LinkContainer
                 to="/getinvbasedondate"
@@ -479,8 +479,8 @@ function App() {
                   simpan detail barang dari kledo
                 </NavDropdown.Item>
               </LinkContainer>
-            </ListGroup.Item>
-            <ListGroup.Item style={listItemStyle}>
+            </ListGroup.Item> */}
+            {/* <ListGroup.Item style={listItemStyle}>
               <AiOutlineBgColors size={20} style={iconStyle} />
               <LinkContainer
                 to="/filteriddangroupidcontact"
@@ -488,9 +488,9 @@ function App() {
               >
                 <NavDropdown.Item>Detail Piutang</NavDropdown.Item>
               </LinkContainer>
-            </ListGroup.Item>
+            </ListGroup.Item> */}
 
-            <ListGroup.Item style={listItemStyle}>
+            {/* <ListGroup.Item style={listItemStyle}>
               <AiOutlineBgColors size={20} style={iconStyle} />
               <LinkContainer
                 to="/laporanstok"
@@ -498,8 +498,8 @@ function App() {
               >
                 <NavDropdown.Item>Laporan Stock</NavDropdown.Item>
               </LinkContainer>
-            </ListGroup.Item>
-            <ListGroup.Item style={listItemStyle}>
+            </ListGroup.Item> */}
+            {/* <ListGroup.Item style={listItemStyle}>
               <AiOutlineBgColors size={20} style={iconStyle} />
               <LinkContainer
                 to="/laporankeuangan"
@@ -507,8 +507,8 @@ function App() {
               >
                 <NavDropdown.Item>Laporan Keuangan</NavDropdown.Item>
               </LinkContainer>
-            </ListGroup.Item>
-            <ListGroup.Item style={listItemStyle}>
+            </ListGroup.Item> */}
+            {/* <ListGroup.Item style={listItemStyle}>
               <AiFillApi size={20} style={iconStyle} />
               <LinkContainer
                 to="/caribedainvoice"
@@ -516,9 +516,9 @@ function App() {
               >
                 <NavDropdown.Item>Cari Beda</NavDropdown.Item>
               </LinkContainer>
-            </ListGroup.Item>
+            </ListGroup.Item> */}
             {/* Data Supplier */}
-            <ListGroup.Item style={listItemStyle}>
+            {/* <ListGroup.Item style={listItemStyle}>
               <AiOutlineBgColors size={20} style={iconStyle} />
               <LinkContainer to="/supplier" onClick={handleDataSupplierClick}>
                 <NavDropdown.Item>Data Supplier</NavDropdown.Item>
@@ -529,14 +529,14 @@ function App() {
               <LinkContainer to="/kind" onClick={handleDataKategoriClick}>
                 <NavDropdown.Item>Kategori</NavDropdown.Item>
               </LinkContainer>
-            </ListGroup.Item>
+            </ListGroup.Item> */}
             <ListGroup.Item style={listItemStyle}>
               <AiOutlineReddit size={20} style={iconStyle} />
               <LinkContainer
                 to="/tabelpelanggans"
                 onClick={handleDataKategoriClick}
               >
-                <NavDropdown.Item>Data Pelanggan</NavDropdown.Item>
+                <NavDropdown.Item>Data Pelanggan ayokllah</NavDropdown.Item>
               </LinkContainer>
             </ListGroup.Item>
             <ListGroup.Item style={listItemStyle}>
@@ -545,27 +545,8 @@ function App() {
                 <NavDropdown.Item>Omset Kategoryiese</NavDropdown.Item>
               </LinkContainer>
             </ListGroup.Item>
-            
-            <ListGroup.Item style={listItemStyle}>
-              <AiOutlineDollar size={20} style={iconStyle} />
-              <LinkContainer to="/diskonsummary" onClick={handleDataHargaClick}>
-                <NavDropdown.Item>Omset Jenis Harga</NavDropdown.Item>
-              </LinkContainer>
-            </ListGroup.Item>
-            <ListGroup.Item style={listItemStyle}>
-              <AiOutlineDollar size={20} style={iconStyle} />
-              <LinkContainer to="/qtysummary" onClick={handleDataHargaClick}>
-                <NavDropdown.Item>Omset Stok</NavDropdown.Item>
-              </LinkContainer>
-            </ListGroup.Item>
-
-            <ListGroup.Item style={listItemStyle}>
-              <AiOutlineSave size={20} style={iconStyle} />
-              <LinkContainer to="/auditqty" onClick={handleDataOutletClick}>
-                <NavDropdown.Item>cek qty</NavDropdown.Item>
-              </LinkContainer>
-            </ListGroup.Item>
-            <ListGroup.Item style={listItemStyle}>
+         
+            {/* <ListGroup.Item style={listItemStyle}>
               <AiOutlineSave size={20} style={iconStyle} />
               <LinkContainer to="/tabeloutlets" onClick={handleDataOutletClick}>
                 <NavDropdown.Item>Data Telolet</NavDropdown.Item>
@@ -576,19 +557,19 @@ function App() {
               <LinkContainer to="/penjualanpemesanan" onClick={handleDataUsahaClick}>
                 <NavDropdown.Item>Data Usaha</NavDropdown.Item>
               </LinkContainer>
-            </ListGroup.Item>
+            </ListGroup.Item> */}
             <ListGroup.Item style={listItemStyle}>
               <AiOutlineHtml5 size={20} style={iconStyle} />
               <LinkContainer to="/tabelbarangs" onClick={handleDataSatuanClick}>
                 <NavDropdown.Item>Data Barang</NavDropdown.Item>
               </LinkContainer>
             </ListGroup.Item>
-            <ListGroup.Item style={listItemStyle}>
+            {/* <ListGroup.Item style={listItemStyle}>
               <AiOutlineSketch size={20} style={iconStyle} />
               <LinkContainer to="/stok" onClick={handleDataStokClick}>
                 <NavDropdown.Item>Data Stok</NavDropdown.Item>
               </LinkContainer>
-            </ListGroup.Item>
+            </ListGroup.Item> */}
             <ListGroup.Item style={listItemStyle}>
               <AiOutlineShop size={20} style={iconStyle} />
               <LinkContainer to="/listkledo" onClick={handleDataTransaksiClick}>
@@ -596,7 +577,7 @@ function App() {
               </LinkContainer>
             </ListGroup.Item>
             
-            <ListGroup.Item style={listItemStyle}>
+            {/* <ListGroup.Item style={listItemStyle}>
               <AiOutlineShop size={20} style={iconStyle} />
               <LinkContainer to="/ibo" onClick={handleDataTransaksiClick}>
                 <NavDropdown.Item>ibo</NavDropdown.Item>
@@ -607,7 +588,7 @@ function App() {
               <LinkContainer to="/printstokauditmanual" onClick={handleDataTransaksiClick}>
                 <NavDropdown.Item>Print Stok Audit Mandiri</NavDropdown.Item>
               </LinkContainer>
-            </ListGroup.Item>
+            </ListGroup.Item> */}
           </ListGroup>
         </div>
         {/* Main Content */}
